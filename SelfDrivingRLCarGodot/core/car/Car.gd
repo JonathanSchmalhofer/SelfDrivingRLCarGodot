@@ -42,7 +42,7 @@ var brake : float = 0.0
 var steering : float = 0.0
 
 # Inputs from External
-var throttle_external : float = 0.001
+var throttle_external : float = 0.0
 var brake_external : float = 0.0
 var steering_external : float = 0.0
 
@@ -61,41 +61,42 @@ var sensor_readings : Array = [0.0, 0.0, 0.0, 0.0, 0.0]
 var sensor_hits : Array = [Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0)]
 
 # Other
+var step_counter : int = 0
 var delta_step : float = 0.1 # 100 ms
 var id : String
 var manual_control : bool = false
 var received_step_command : bool = false
-var server_node
+var game_logic_node
 
 
 ################################################################################
 ### Signals
 
-signal sense_response(uuid, sensor_0, sensor_1, sensor_2, sensor_3, sensor_4, velocity, yaw, pos_x, pos_y)
-
 ################################################################################
 ### Functions
 
 func _ready():
-	server_node = get_node("/root/Node2D/Server")
-	server_node.connect("command_step", self, "_on_command_step")
+	Reset()
+	game_logic_node = get_node("/root/Node2D/GameLogic")
 
 func _physics_process(delta):
 	if manual_control or received_step_command:
+		step_counter += 1
 		received_step_command = false
 		GetAndCalcInput(delta)
 		CalcDrivingForces()
 		CalcKinematicModel()
 		UpdateNodes()
 		CalcSensors()
-		SendReponse()
+		SenseReponse()
 		self.update()
 
 func _draw():
 	DrawSensors()
 
-func _on_command_step():
-	#print("Got Step command")
+func Step():
+	if step_counter%10 == 0:
+		print("   Got Step command " + str(step_counter))
 	received_step_command = true
 
 func GetAndCalcInput(delta):
@@ -179,6 +180,23 @@ func DrawSensors():
 func SetId(_id):
 	id = _id
 
+func Reset():
+	throttle = 0.0
+	brake = 0.0
+	steering = 0.0
+	throttle_external = 0.0
+	brake_external = 0.0
+	steering_external = 0.0
+	force_drive = 0.0
+	velocity_longitudinal = 0.0
+	x_dot = 0.0
+	y_dot = 0.0
+	psi = 0.0
+	sensor_readings = [0.0, 0.0, 0.0, 0.0, 0.0]
+	sensor_hits = [Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0)]
+	step_counter = 0
+	received_step_command = false
+
 func GetId():
 	return id
 
@@ -188,13 +206,15 @@ func SetManualControl(val):
 func GetManualControl():
 	return manual_control
 
-func SetExternalInputs(_throttle, _brake, _steering):
-	#print("Setting External Inputs")
+func Control(_throttle, _brake, _steering):
 	throttle_external = _throttle
 	brake_external = _brake
 	steering_external = _steering
 
-func SendReponse():
+func Sense():
+	SenseReponse()
+
+func SenseReponse():
 	if not manual_control:
-		sensor_readings
-		emit_signal("sense_response", id, sensor_readings[0], sensor_readings[1], sensor_readings[2], sensor_readings[3], sensor_readings[4], velocity_longitudinal, psi, position.x, position.y)
+		if game_logic_node:
+			game_logic_node.SenseResponse(id, sensor_readings[0], sensor_readings[1], sensor_readings[2], sensor_readings[3], sensor_readings[4], velocity_longitudinal, psi, position.x, position.y)

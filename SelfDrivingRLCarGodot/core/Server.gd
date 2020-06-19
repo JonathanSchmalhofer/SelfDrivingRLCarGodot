@@ -14,18 +14,11 @@ var control_counter : int = 0
 
 var game_logic_node
 
-signal command_register(uuid)
-signal command_reset(uuid)
-signal command_close(uuid)
-signal command_control(uuid, throttle, brake, steering)
-signal command_step()
-
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	server = TCP_Server.new()
 	server.listen(42424, "*")
 	game_logic_node = get_node("/root/Node2D/GameLogic")
-	game_logic_node.connect("sense_reponse_to_server", self, "_on_sense_reponse_to_server")
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -105,26 +98,28 @@ func ParseData():
 					HandleCommandWithArguments(key, command_with_args)
 
 func CloseConnection(key):
-	#print("Closing Connection " + String(key))
 	tcp_stream_dict[key].disconnect_from_host()
 	tcp_stream_dict.erase(key)
 	buffer_dict.erase(key)
 	msg_size_dict.erase(key)
 
 func RegisterCommand(key):
-	emit_signal("command_register", key)
+	if game_logic_node:
+		game_logic_node.Register(key)
 	
 
 func ResetCommand(key):
-	emit_signal("command_reset", key)
+	if game_logic_node:
+		game_logic_node.Reset(key)
 
 func SenseCommand(key):
-	pass
+	if game_logic_node:
+		game_logic_node.Sense(key)
 
 func CloseCommand(key):
 	CloseConnection(key)
-	#print("Emit Close: " + String(key))
-	emit_signal("command_close", key)
+	if game_logic_node:
+		game_logic_node.Close(key)
 
 func HandleCommandWithArguments(key, command):
 	if HandleControlCommand(key, command):
@@ -139,14 +134,16 @@ func HandleControlCommand(key, command):
 			var throttle : float = float(result.get_string("throttle"))
 			var brake : float = float(result.get_string("brake"))
 			var steering : float = float(result.get_string("steering"))
-			emit_signal("command_control", key, throttle, brake, steering)
+			if game_logic_node:
+				game_logic_node.Control(key, throttle, brake, steering)
 			control_counter += 1
 			if control_counter >= tcp_stream_dict.size():
-				emit_signal("command_step")
+				if game_logic_node:
+					game_logic_node.Step()
 			return true
 	return false
 
-func _on_sense_reponse_to_server(uuid, sensor_0, sensor_1, sensor_2, sensor_3, sensor_4, velocity, yaw, pos_x, pos_y):
+func SenseResponse(uuid, sensor_0, sensor_1, sensor_2, sensor_3, sensor_4, velocity, yaw, pos_x, pos_y):
 	if tcp_stream_dict[uuid]:
 		if tcp_stream_dict[uuid].is_connected_to_host():
 			var response : String = String(sensor_0) + ";" + String(sensor_1) + ";" + String(sensor_2) + ";" + String(sensor_3) + ";" + String(sensor_4) + ";" + String(velocity) + ";" + String(yaw) + ";" + String(pos_x) + ";" + String(pos_y)
@@ -154,4 +151,12 @@ func _on_sense_reponse_to_server(uuid, sensor_0, sensor_1, sensor_2, sensor_3, s
 			if retval[0]:
 				print(String(uuid) + "Error: " + String(retval[0]))
 				print(String(uuid) + "Data: " + String(retval[1]))
-			#print("Send: " + response)
+
+func RegisterResponse(uuid):
+	if tcp_stream_dict[uuid]:
+		if tcp_stream_dict[uuid].is_connected_to_host():
+			var response : String = String(uuid)
+			var retval = tcp_stream_dict[uuid].put_partial_data(response.to_ascii())
+			if retval[0]:
+				print(String(uuid) + "Error: " + String(retval[0]))
+				print(String(uuid) + "Data: " + String(retval[1]))
