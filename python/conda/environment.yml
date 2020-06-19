@@ -1,0 +1,15 @@
+name: godot-sl-car
+channels:
+    - https://conda.anaconda.org/powerai
+    - conda-forge
+    - https://conda.anaconda.org/menpo
+dependencies:
+    - python==3.7.6
+    - pip==20.0.2
+    - pip:
+        - tensorflow==2.2.0
+        - keras==2.3.1
+        - matplotlib==3.1.3
+        - gym==0.17.2
+        - numpy==1.18.1
+        - ffmpeg==1.4
