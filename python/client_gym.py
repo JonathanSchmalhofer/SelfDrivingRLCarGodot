@@ -23,6 +23,7 @@ class GodotCarHelperClient():
     self._yaw = 0.0
     self._pos_x = 0.0
     self._pos_y = 0.0
+    self._crash = False
   def _connect(self):
     print("Connecting")
     if self._socket:
@@ -45,10 +46,11 @@ class GodotCarHelperClient():
     self._socket = None
     self._status = Status.INIT
   def get_episode_status(self):
-    # todo: implement
-    if self._total_reward > 5:
+
+    if self._total_reward > 100:
         return True
-    return False
+    if self._crash:
+        return True
   def get_observation(self):
     observation = (self._sensor_readings[0], self._sensor_readings[1], self._sensor_readings[2], self._sensor_readings[3], self._sensor_readings[4], self._speed, self._yaw, self._pos_x, self._pos_y)
     return np.array(observation)
@@ -67,17 +69,19 @@ class GodotCarHelperClient():
     self.close()
     self._connect()
     self._register()
+    self._crash = False
   def set_control(self, control):
     command_body = "(CONTROL:{throttle:2.3f};{brake:2.3f};{steer:2.3f})".format(throttle=control[0], brake=control[1], steer=control[2])
     command_head = "(HEAD:{length:d})".format(length=len(command_body))
     command = command_head+command_body
     self._socket.send(command.encode('utf-8'))
     data = self._socket.recv(self._buffer_size).decode('utf-8').split(';')
-    self._sensor_readings = data[0:5]
-    self._speed = data[5]
-    self._yaw = data[6]
-    self._pos_x = data[7]
-    self._pos_y = data[8]
+    self._crash = data[0]
+    self._sensor_readings = data[1:6]
+    self._speed = data[6]
+    self._yaw = data[7]
+    self._pos_x = data[8]
+    self._pos_y = data[9]
 def step(client):
     throttle = float(0.5)
     brake = float(0.2)

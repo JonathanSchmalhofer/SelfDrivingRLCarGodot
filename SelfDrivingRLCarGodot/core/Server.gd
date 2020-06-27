@@ -18,10 +18,10 @@ var game_logic_node
 func _ready():
 	server = TCP_Server.new()
 	server.listen(42424, "*")
-	game_logic_node = get_node("/root/Node2D/GameLogic")
+	game_logic_node = get_node("/root/game/GameLogic")
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
+func _process(_delta):
 	if server.is_listening():
 		if server.is_connection_available():
 			#print("Connection available")
@@ -143,10 +143,10 @@ func HandleControlCommand(key, command):
 			return true
 	return false
 
-func SenseResponse(uuid, sensor_0, sensor_1, sensor_2, sensor_3, sensor_4, velocity, yaw, pos_x, pos_y):
+func SenseResponse(uuid, crash, sensor_0, sensor_1, sensor_2, sensor_3, sensor_4, velocity, yaw, pos_x, pos_y):
 	if tcp_stream_dict[uuid]:
 		if tcp_stream_dict[uuid].is_connected_to_host():
-			var response : String = String(sensor_0) + ";" + String(sensor_1) + ";" + String(sensor_2) + ";" + String(sensor_3) + ";" + String(sensor_4) + ";" + String(velocity) + ";" + String(yaw) + ";" + String(pos_x) + ";" + String(pos_y)
+			var response : String = String(crash) + ";" + String(sensor_0) + ";" + String(sensor_1) + ";" + String(sensor_2) + ";" + String(sensor_3) + ";" + String(sensor_4) + ";" + String(velocity) + ";" + String(yaw) + ";" + String(pos_x) + ";" + String(pos_y)
 			var retval = tcp_stream_dict[uuid].put_partial_data(response.to_ascii())
 			if retval[0]:
 				print(String(uuid) + "Error: " + String(retval[0]))

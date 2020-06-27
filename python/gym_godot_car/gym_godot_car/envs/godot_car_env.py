@@ -18,61 +18,70 @@ class GodotCarHelperClient():
     self._port = 42424
     self._buffer_size = 1024
     self._socket = None
-    self._connect()
+    self._Connect()
     self._status = Status.INIT
     self._total_reward = 0
+    self._crash = False
     self._observation = (0, 0, 0, 0, 0, 0, 0, 0, 0)
     self._id = ""
-  def _connect(self):
-    print("Connecting")
+    self._debug = False
+  def _DebugPrint(self, msg):
+    if self._debug:
+      self._DebugPrint(msg)
+  def _Connect(self):
     if self._socket:
-        print("Already socket created, closing first before connecting")
-        self.close()
+        self._DebugPrint("Already socket created, closing first before connecting")
+        self.Close()
     self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self._socket.settimeout(1) # seconds
     self._socket.connect((self._ip, self._port))
     self._status = Status.WAITING
-  def _register(self):
-    print("Registering")
+  def _Register(self):
+    self._DebugPrint("Registering")
     self._socket.send("(HEAD:10)(REGISTER)".encode('utf-8'))
     self._status = Status.RUNNING
     self._id = self._socket.recv(self._buffer_size).decode('utf-8')
-  def close(self):
+  def Close(self):
     if self._socket:
         self._socket.send("(HEAD:7)(CLOSE)".encode('utf-8'))
         self._socket.close()
-        print("Closing Socket")
+        self._DebugPrint("Closing Socket")
     self._socket = None
     self._status = Status.INIT
-  def get_episode_status(self):
-    # todo: implement
-    if self._total_reward > 5:
+  def GetEpisodeStatus(self):
+    if self._crash:
+      print("C R A S H")
+    if self._total_reward > 100 or self._crash:
         return True
     return False
-  def get_observation(self):
+  def GetObservation(self):
     return np.array(self._observation)
-  def get_reward(self):
+  def GetReward(self):
     step_reward = 1 # todo: implement
     self._total_reward += step_reward
     return step_reward
-  def get_status(self):
+  def GetStatus(self):
     return self._status
-  def _reset_internal_states(self):
+  def _ResetInternalStates(self):
     self._status = Status.INIT
     self._total_reward = 0
-  def reset(self):
-    print("Resetting Socket")
-    self._reset_internal_states()
+    self._crash = False
+    self._observation = (0, 0, 0, 0, 0, 0, 0, 0, 0)
+  def Reset(self):
+    self._DebugPrint("Resetting Socket")
+    self._ResetInternalStates()
     self._total_reward = 0
-    self.close()
-    self._connect()
-    self._register()
-  def set_control(self, control):
+    self.Close()
+    self._Connect()
+    self._Register()
+  def SetControl(self, control):
     command_body = "(CONTROL:{throttle:2.3f};{brake:2.3f};{steer:2.3f})".format(throttle=control[0], brake=control[1], steer=control[2])
     command_head = "(HEAD:{length:d})".format(length=len(command_body))
     command = command_head+command_body
     self._socket.send(command.encode('utf-8'))
-    self._observation = self._socket.recv(self._buffer_size).decode('utf-8').split(';')
+    data = self._socket.recv(self._buffer_size).decode('utf-8').split(';')
+    self._crash = bool(data[0] == 'True')
+    self._observation = data[1:10]
 
 class GodotCarEnv(gym.Env):
   metadata = {'render.modes': ['human']}
@@ -125,18 +134,17 @@ class GodotCarEnv(gym.Env):
     brake = float(np.clip(action[1], self.min_brake, self.max_brake))
     steer = float(np.clip(action[2], self.min_steer, self.max_steer))
     control = np.array([throttle, brake, steer])
-    self.client.set_control(control)
-    status = self.client.get_status()
-    reward = self.client.get_reward()
-    observation = self.client.get_observation()
-    episode_over = self.client.get_episode_status()
+    self.client.SetControl(control)
+    status = self.client.GetStatus()
+    reward = self.client.GetReward()
+    observation = self.client.GetObservation()
+    episode_over = self.client.GetEpisodeStatus()
     return observation, reward, episode_over, {}
   def reset(self):
-    self.client.reset()
-    #return np.array(observation)
+    self.client.Reset()
   def render(self, mode='human'):
     pass
   def close(self):
     if self.client:
-        self.client.close()
+        self.client.Close()
         self.client = None

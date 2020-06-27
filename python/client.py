@@ -16,10 +16,16 @@ def DoEpisode():
         s.send("(HEAD:22)(CONTROL:0.3;0.1;-0.1)".encode('utf-8'))
         data = s.recv(BUFFER_SIZE).decode('utf-8').split(';')
         print("   RESPONSE: {}".format(data))
-        print("{} {} {} {} {}".format(data[0],data[1],data[2],data[3],data[4]))
+        print("{} {} {} {} {}".format(data[1],data[2],data[3],data[4],data[5]))
+        if data[0] == "True":
+            print("Crash")
+            break
     for i in range(0, 100):
         s.send("(HEAD:22)(CONTROL:0.6;0.15;0.4)".encode('utf-8'))
-        data = s.recv(BUFFER_SIZE)
+        data = s.recv(BUFFER_SIZE).decode('utf-8').split(';')
+        if data[0] == "True":
+            print("Crash")
+            break
         #print("   RESPONSE: {}".format(data))
     s.send("(HEAD:7)(CLOSE)".encode('utf-8'))
     s.close()

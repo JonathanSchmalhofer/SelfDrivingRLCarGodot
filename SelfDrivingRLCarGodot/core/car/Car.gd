@@ -32,6 +32,7 @@ const l_f : float = 4.0 # non realistic, adapted to pixel-size of vehicle
 const diag_factor : float = 1/sqrt(2)
 const sensor_directions : Array = [Vector2(0.0,1.0), Vector2(diag_factor,diag_factor), Vector2(1.0,0.0), Vector2(diag_factor,-diag_factor), Vector2(0.0,-1.0)]
 const sensor_range : float = 100.0
+const step_size : float = 0.1 # 100 ms
 
 ################################################################################
 ### Varibles
@@ -61,12 +62,15 @@ var sensor_readings : Array = [0.0, 0.0, 0.0, 0.0, 0.0]
 var sensor_hits : Array = [Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0)]
 
 # Other
-var step_counter : int = 0
-var delta_step : float = 0.1 # 100 ms
+var step_counter : float = 0.0
+var distance_counter : float = 0.0
+var delta_step : float = step_size
 var id : String
 var manual_control : bool = false
 var received_step_command : bool = false
 var game_logic_node
+var crash : bool = false
+var last_position : Vector2 = Vector2(0.0, 0.0)
 
 
 ################################################################################
@@ -77,22 +81,30 @@ var game_logic_node
 
 func _ready():
 	Reset()
-	game_logic_node = get_node("/root/Node2D/GameLogic")
+	game_logic_node = get_node("/root/game/GameLogic")
 
 func _physics_process(delta):
 	if manual_control or received_step_command:
-		step_counter += 1
 		received_step_command = false
-		GetAndCalcInput(delta)
-		CalcDrivingForces()
-		CalcKinematicModel()
-		UpdateNodes()
+		if not crash:
+			GetAndCalcInput(delta)
+			CalcDrivingForces()
+			CalcKinematicModel()
+			UpdateNodes()
+			CalcStatistics()
 		CalcSensors()
 		SenseReponse()
+		ReportStatistics()
 		self.update()
 
 func _draw():
 	DrawSensors()
+
+func CalcStatistics():
+	step_counter += 1.0
+	var delta_movement = position - last_position
+	distance_counter += delta_movement.length()
+	last_position = position
 
 func Step():
 	#if step_counter%10 == 0:
@@ -104,6 +116,7 @@ func GetAndCalcInput(delta):
 		delta_step = delta
 		GetAndCalcUserInput()
 	else:
+		delta_step = step_size
 		GetExternalInput()
 
 func GetAndCalcUserInput():
@@ -156,7 +169,9 @@ func UpdateNodes():
 	velocity.y = y_dot * game_factor
 	#velocity = move_and_slide(velocity)
 	var collision = move_and_collide(velocity * delta_step)
+	crash = false
 	if collision:
+		crash = true
 		velocity = velocity.slide(collision.normal)
 	# using move_and_slide
 	velocity = move_and_slide(velocity)
@@ -194,8 +209,11 @@ func Reset():
 	psi = 0.0
 	sensor_readings = [0.0, 0.0, 0.0, 0.0, 0.0]
 	sensor_hits = [Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0)]
-	step_counter = 0
+	crash = false
+	step_counter = 0.0
+	distance_counter = 0.0
 	received_step_command = false
+	last_position = position
 
 func GetId():
 	return id
@@ -217,4 +235,8 @@ func Sense():
 func SenseReponse():
 	if not manual_control:
 		if game_logic_node:
-			game_logic_node.SenseResponse(id, sensor_readings[0], sensor_readings[1], sensor_readings[2], sensor_readings[3], sensor_readings[4], velocity_longitudinal, psi, position.x, position.y)
+			game_logic_node.SenseResponse(id, crash, sensor_readings[0], sensor_readings[1], sensor_readings[2], sensor_readings[3], sensor_readings[4], velocity_longitudinal, psi, position.x, position.y)
+
+func ReportStatistics():
+	if game_logic_node:
+		game_logic_node.UpdateStatistics(distance_counter,step_counter)

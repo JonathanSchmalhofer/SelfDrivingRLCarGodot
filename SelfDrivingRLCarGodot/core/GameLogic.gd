@@ -6,25 +6,55 @@ const UUID = preload("res://core/uuid.gd")
 var server_node
 var car_node
 
+var score_label
+var distance_label
+var step_label
+
+var max_score : float = 0.0
+var max_distance : float = 0.0
+var max_steps : float = 0.0
+
 const pos_init : Vector2 = Vector2(630, 280)
 const rot_init : float = 0.0
 const scale : float = 0.4
+const weight_distance : float = 2.0
+const weight_steps : float = 1.0
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	server_node = get_node("/root/Node2D/Server")
+	server_node = get_node("/root/game/Server")
+	score_label = get_node("/root/game/Labels/MaxScoreLabel")
+	distance_label = get_node("/root/game/Labels/MaxDistanceLabel")
+	step_label = get_node("/root/game/Labels/MaxStepsLabel")
+	ResetStatistics()
+	UpdateLabels()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
-	car_node = get_node("/root/Node2D/Car")
+func _process(_delta):
+	car_node = get_node("/root/game/Car")
 	if Input.is_action_pressed("ui_cancel"):
 		DeleteAllCars()
 	if Input.is_action_pressed("ui_select"):
 		DeleteAllCars()
 		if (car_node):
 			car_node.add_child(CreateCar(UUID.v4(), true))
+	UpdateLabels()
+
+func ResetStatistics():
+	max_score = 0.0
+	max_distance = 0.0
+	max_steps = 0.0
+
+func UpdateLabels():
+	if (score_label):
+		score_label.text = str("%10.2f" % max_score)
+	if (distance_label):
+		distance_label.text = str("%10.2f" % max_distance)
+	if (step_label):
+		step_label.text = str("%10.2f" % max_steps)
 
 func DeleteAllCars():
+	ResetStatistics()
 	if (car_node):
 		for child in car_node.get_children():
 			car_node.remove_child(child)
@@ -38,6 +68,7 @@ func DeleteCar(uuid):
 				break
 
 func CreateCar(uuid, manual_control):
+	ResetStatistics()
 	var new_car = CAR.instance()
 	new_car.SetId(uuid)
 	new_car.transform = Transform2D(rot_init, pos_init)
@@ -80,6 +111,12 @@ func Control(uuid, throttle, brake, steering):
 			if child.GetId() == uuid:
 				child.Control(throttle, brake, steering)
 
-func SenseResponse(uuid, sensor_0, sensor_1, sensor_2, sensor_3, sensor_4, velocity, yaw, pos_x, pos_y):
+func SenseResponse(uuid, crash, sensor_0, sensor_1, sensor_2, sensor_3, sensor_4, velocity, yaw, pos_x, pos_y):
 	if server_node:
-		server_node.SenseResponse(uuid, sensor_0, sensor_1, sensor_2, sensor_3, sensor_4, velocity, yaw, pos_x, pos_y)
+		server_node.SenseResponse(uuid, crash, sensor_0, sensor_1, sensor_2, sensor_3, sensor_4, velocity, yaw, pos_x, pos_y)
+
+func UpdateStatistics(distance, steps):
+	if distance > max_distance or steps > max_steps:
+		max_distance = distance
+		max_steps = steps
+	max_score = (weight_distance * max_distance) - (weight_steps * max_steps)
