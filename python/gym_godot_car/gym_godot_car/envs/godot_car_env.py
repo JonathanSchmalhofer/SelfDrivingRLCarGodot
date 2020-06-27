@@ -20,7 +20,8 @@ class GodotCarHelperClient():
     self._socket = None
     self._Connect()
     self._status = Status.INIT
-    self._total_reward = 0
+    self._step_reward = 0.0
+    self._total_reward = 0.0
     self._crash = False
     self._observation = (0, 0, 0, 0, 0, 0, 0, 0, 0)
     self._id = ""
@@ -51,26 +52,24 @@ class GodotCarHelperClient():
   def GetEpisodeStatus(self):
     if self._crash:
       print("C R A S H")
-    if self._total_reward > 100 or self._crash:
+    if self._total_reward < -200 or self._total_reward > 14000 or self._crash:
         return True
     return False
   def GetObservation(self):
     return np.array(self._observation)
   def GetReward(self):
-    step_reward = 1 # todo: implement
-    self._total_reward += step_reward
-    return step_reward
+    return self._step_reward
   def GetStatus(self):
     return self._status
   def _ResetInternalStates(self):
     self._status = Status.INIT
-    self._total_reward = 0
+    self._step_reward = 0.0
+    self._total_reward = 0.0
     self._crash = False
     self._observation = (0, 0, 0, 0, 0, 0, 0, 0, 0)
   def Reset(self):
     self._DebugPrint("Resetting Socket")
     self._ResetInternalStates()
-    self._total_reward = 0
     self.Close()
     self._Connect()
     self._Register()
@@ -80,8 +79,10 @@ class GodotCarHelperClient():
     command = command_head+command_body
     self._socket.send(command.encode('utf-8'))
     data = self._socket.recv(self._buffer_size).decode('utf-8').split(';')
-    self._crash = bool(data[0] == 'True')
-    self._observation = data[1:10]
+    self._step_reward = float(data[0]) - self._total_reward
+    self._total_reward += self._step_reward
+    self._crash = bool(data[1] == 'True')
+    self._observation = data[2:11]
 
 class GodotCarEnv(gym.Env):
   metadata = {'render.modes': ['human']}
