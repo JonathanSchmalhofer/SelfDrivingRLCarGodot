@@ -34,6 +34,7 @@ func DeleteCar(uuid):
 		for child in car_node.get_children():
 			if child.GetId() == uuid:
 				car_node.remove_child(child)
+				print("Deleting " + str(uuid))
 				break
 
 func CreateCar(uuid, manual_control):

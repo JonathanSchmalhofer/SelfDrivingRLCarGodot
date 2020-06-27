@@ -95,8 +95,8 @@ func _draw():
 	DrawSensors()
 
 func Step():
-	if step_counter%10 == 0:
-		print("   Got Step command " + str(step_counter))
+	#if step_counter%10 == 0:
+	#	print("   Got Step command " + str(step_counter))
 	received_step_command = true
 
 func GetAndCalcInput(delta):

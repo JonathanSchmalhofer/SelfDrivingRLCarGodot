@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # want to change the amount of output.
     logger.set_level(logger.INFO)
 
-    env = gym.make('gym_godot_car:godot-car-v0')
+    env = gym.make('godot-car-v0')
 
     # You provide the directory to write to (can be an existing
     # directory, including one with existing data -- all monitor files

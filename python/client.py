@@ -14,8 +14,9 @@ def DoEpisode():
     print("   RESPONSE: {}".format(data))
     for i in range(0, 100):
         s.send("(HEAD:22)(CONTROL:0.3;0.1;-0.1)".encode('utf-8'))
-        data = s.recv(BUFFER_SIZE)
-        #print("   RESPONSE: {}".format(data))
+        data = s.recv(BUFFER_SIZE).decode('utf-8').split(';')
+        print("   RESPONSE: {}".format(data))
+        print("{} {} {} {} {}".format(data[0],data[1],data[2],data[3],data[4]))
     for i in range(0, 100):
         s.send("(HEAD:22)(CONTROL:0.6;0.15;0.4)".encode('utf-8'))
         data = s.recv(BUFFER_SIZE)
@@ -27,7 +28,6 @@ def DoEpisode():
 TCP_IP = '127.0.0.1'
 TCP_PORT = 42424
 BUFFER_SIZE = 1024
-MESSAGE = "Hello, World!"
 
 for i in range(0, 100):
     print("Episode {}".format(i))

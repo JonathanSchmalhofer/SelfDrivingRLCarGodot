@@ -18,6 +18,11 @@ class GodotCarHelperClient():
     self._connect()
     self._status = Status.INIT
     self._total_reward = 0
+    self._sensor_readings = [0.0, 0.0, 0.0, 0.0, 0.0]
+    self._speed = 0.0
+    self._yaw = 0.0
+    self._pos_x = 0.0
+    self._pos_y = 0.0
   def _connect(self):
     print("Connecting")
     if self._socket:
@@ -31,6 +36,7 @@ class GodotCarHelperClient():
     print("Registering")
     self._socket.send("(HEAD:10)(REGISTER)".encode('utf-8'))
     self._status = Status.RUNNING
+    data = self._socket.recv(self._buffer_size)
   def close(self):
     if self._socket:
         self._socket.send("(HEAD:7)(CLOSE)".encode('utf-8'))
@@ -44,12 +50,7 @@ class GodotCarHelperClient():
         return True
     return False
   def get_observation(self):
-    dist = 0.0  # todo: implement
-    speed = 0.0
-    yaw = 0.0
-    pos_x = 0.0
-    pos_y = 0.0
-    observation = (dist, dist, dist, dist, dist, speed, yaw, pos_x, pos_y)
+    observation = (self._sensor_readings[0], self._sensor_readings[1], self._sensor_readings[2], self._sensor_readings[3], self._sensor_readings[4], self._speed, self._yaw, self._pos_x, self._pos_y)
     return np.array(observation)
   def get_reward(self):
     step_reward = 1 # todo: implement
@@ -71,9 +72,12 @@ class GodotCarHelperClient():
     command_head = "(HEAD:{length:d})".format(length=len(command_body))
     command = command_head+command_body
     self._socket.send(command.encode('utf-8'))
-    data = self._socket.recv(self._buffer_size)
-    print(data)
-
+    data = self._socket.recv(self._buffer_size).decode('utf-8').split(';')
+    self._sensor_readings = data[0:5]
+    self._speed = data[5]
+    self._yaw = data[6]
+    self._pos_x = data[7]
+    self._pos_y = data[8]
 def step(client):
     throttle = float(0.5)
     brake = float(0.2)
@@ -89,26 +93,10 @@ client = GodotCarHelperClient()
 client.close()
 client._connect()
 client._register()
-for i in range(5):
-    throttle = float(0.5)
-    brake = float(0.2)
-    steer = float(0.5)
-    control = np.array([throttle, brake, steer])
-    client.set_control(control)
-    status = client.get_status()
-    reward = client.get_reward()
-    observation = client.get_observation()
-    episode_over = client.get_episode_status()
+for i in range(100):
+    step(client)
 
 client.reset()
-for i in range(5):
-    throttle = float(0.5)
-    brake = float(0.2)
-    steer = float(0.5)
-    control = np.array([throttle, brake, steer])
-    client.set_control(control)
-    status = client.get_status()
-    reward = client.get_reward()
-    observation = client.get_observation()
-    episode_over = client.get_episode_status()
+for i in range(100):
+    step(client)
 client.close()

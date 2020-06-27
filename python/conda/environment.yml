@@ -6,6 +6,7 @@ channels:
 dependencies:
     - python==3.7.6
     - pip==20.0.2
+    - conda-build
     - pip:
         - tensorflow==2.2.0
         - keras==2.3.1

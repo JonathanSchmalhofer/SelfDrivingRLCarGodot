@@ -21,6 +21,8 @@ class GodotCarHelperClient():
     self._connect()
     self._status = Status.INIT
     self._total_reward = 0
+    self._observation = (0, 0, 0, 0, 0, 0, 0, 0, 0)
+    self._id = ""
   def _connect(self):
     print("Connecting")
     if self._socket:
@@ -34,6 +36,7 @@ class GodotCarHelperClient():
     print("Registering")
     self._socket.send("(HEAD:10)(REGISTER)".encode('utf-8'))
     self._status = Status.RUNNING
+    self._id = self._socket.recv(self._buffer_size).decode('utf-8')
   def close(self):
     if self._socket:
         self._socket.send("(HEAD:7)(CLOSE)".encode('utf-8'))
@@ -47,13 +50,7 @@ class GodotCarHelperClient():
         return True
     return False
   def get_observation(self):
-    dist = 0.0  # todo: implement
-    speed = 0.0
-    yaw = 0.0
-    pos_x = 0.0
-    pos_y = 0.0
-    observation = (dist, dist, dist, dist, dist, speed, yaw, pos_x, pos_y)
-    return np.array(observation)
+    return np.array(self._observation)
   def get_reward(self):
     step_reward = 1 # todo: implement
     self._total_reward += step_reward
@@ -65,6 +62,7 @@ class GodotCarHelperClient():
     self._total_reward = 0
   def reset(self):
     print("Resetting Socket")
+    self._reset_internal_states()
     self._total_reward = 0
     self.close()
     self._connect()
@@ -74,8 +72,7 @@ class GodotCarHelperClient():
     command_head = "(HEAD:{length:d})".format(length=len(command_body))
     command = command_head+command_body
     self._socket.send(command.encode('utf-8'))
-    data = self._socket.recv(self._buffer_size)
-    print(data)
+    self._observation = self._socket.recv(self._buffer_size).decode('utf-8').split(';')
 
 class GodotCarEnv(gym.Env):
   metadata = {'render.modes': ['human']}
@@ -136,13 +133,7 @@ class GodotCarEnv(gym.Env):
     return observation, reward, episode_over, {}
   def reset(self):
     self.client.reset()
-    dist = 0.0  # todo: implement
-    speed = 0.0
-    yaw = 0.0
-    pos_x = 0.0
-    pos_y = 0.0
-    observation = (dist, dist, dist, dist, dist, speed, yaw, pos_x, pos_y)
-    return np.array(observation)
+    #return np.array(observation)
   def render(self, mode='human'):
     pass
   def close(self):
