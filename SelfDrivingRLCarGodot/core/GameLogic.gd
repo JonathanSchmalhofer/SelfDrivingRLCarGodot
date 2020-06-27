@@ -17,8 +17,8 @@ var max_steps : float = 0.0
 const pos_init : Vector2 = Vector2(630, 280)
 const rot_init : float = 0.0
 const scale : float = 0.4
-const weight_distance : float = 2.0
-const weight_steps : float = 1.0
+const weight_distance : float = 1.0
+const weight_steps : float = 0.5
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -92,6 +92,7 @@ func Step():
 	if (car_node):
 		for child in car_node.get_children():
 			child.Step()
+	UpdateLabels()
 
 func Close(uuid):
 	DeleteCar(uuid)
@@ -113,7 +114,7 @@ func Control(uuid, throttle, brake, steering):
 
 func SenseResponse(uuid, crash, sensor_0, sensor_1, sensor_2, sensor_3, sensor_4, velocity, yaw, pos_x, pos_y):
 	if server_node:
-		server_node.SenseResponse(uuid, crash, sensor_0, sensor_1, sensor_2, sensor_3, sensor_4, velocity, yaw, pos_x, pos_y)
+		server_node.SenseResponse(uuid, max_score, crash, sensor_0, sensor_1, sensor_2, sensor_3, sensor_4, velocity, yaw, pos_x, pos_y)
 
 func UpdateStatistics(distance, steps):
 	if distance > max_distance or steps > max_steps:

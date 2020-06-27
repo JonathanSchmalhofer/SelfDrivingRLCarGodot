@@ -17,7 +17,8 @@ class GodotCarHelperClient():
     self._socket = None
     self._connect()
     self._status = Status.INIT
-    self._total_reward = 0
+    self._total_reward = 0.0
+    self._step_reward = 0.0
     self._sensor_readings = [0.0, 0.0, 0.0, 0.0, 0.0]
     self._speed = 0.0
     self._yaw = 0.0
@@ -46,8 +47,9 @@ class GodotCarHelperClient():
     self._socket = None
     self._status = Status.INIT
   def get_episode_status(self):
-
-    if self._total_reward > 100:
+    if self._total_reward < -200:
+        return True
+    if self._total_reward > 14000:
         return True
     if self._crash:
         return True
@@ -55,9 +57,7 @@ class GodotCarHelperClient():
     observation = (self._sensor_readings[0], self._sensor_readings[1], self._sensor_readings[2], self._sensor_readings[3], self._sensor_readings[4], self._speed, self._yaw, self._pos_x, self._pos_y)
     return np.array(observation)
   def get_reward(self):
-    step_reward = 1 # todo: implement
-    self._total_reward += step_reward
-    return step_reward
+    return self._step_reward
   def get_status(self):
     return self._status
   def _reset_internal_states(self):
@@ -65,7 +65,8 @@ class GodotCarHelperClient():
     self._total_reward = 0
   def reset(self):
     print("Resetting Socket")
-    self._total_reward = 0
+    self._total_reward = 0.0
+    self._step_reward = 0.0
     self.close()
     self._connect()
     self._register()
@@ -76,12 +77,14 @@ class GodotCarHelperClient():
     command = command_head+command_body
     self._socket.send(command.encode('utf-8'))
     data = self._socket.recv(self._buffer_size).decode('utf-8').split(';')
-    self._crash = data[0]
-    self._sensor_readings = data[1:6]
-    self._speed = data[6]
-    self._yaw = data[7]
-    self._pos_x = data[8]
-    self._pos_y = data[9]
+    self._step_reward = float(data[0]) - self._total_reward
+    self._total_reward += self._step_reward
+    self._crash = data[1]
+    self._sensor_readings = data[2:7]
+    self._speed = data[7]
+    self._yaw = data[8]
+    self._pos_x = data[9]
+    self._pos_y = data[10]
 def step(client):
     throttle = float(0.5)
     brake = float(0.2)
