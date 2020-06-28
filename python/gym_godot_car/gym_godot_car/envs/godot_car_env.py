@@ -5,6 +5,7 @@ from gym.utils import seeding
 import numpy as np
 import socket
 from enum import Enum
+import math
 
 class Status(Enum):
     INIT = 0
@@ -23,7 +24,7 @@ class GodotCarHelperClient():
     self._step_reward = 0.0
     self._total_reward = 0.0
     self._crash = False
-    self._observation = (0, 0, 0, 0, 0, 0, 0, 0, 0)
+    self._observation = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     self._id = ""
     self._debug = False
   def _DebugPrint(self, msg):
@@ -50,9 +51,9 @@ class GodotCarHelperClient():
     self._socket = None
     self._status = Status.INIT
   def GetEpisodeStatus(self):
-    if self._crash:
-      print("C R A S H")
-    if self._total_reward < -200 or self._total_reward > 14000 or self._crash:
+    #if self._crash:
+    #  print("C R A S H")
+    if self._total_reward < -25 or self._total_reward > 14000 or self._crash:
         return True
     return False
   def GetObservation(self):
@@ -66,7 +67,7 @@ class GodotCarHelperClient():
     self._step_reward = 0.0
     self._total_reward = 0.0
     self._crash = False
-    self._observation = (0, 0, 0, 0, 0, 0, 0, 0, 0)
+    self._observation = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   def Reset(self):
     self._DebugPrint("Resetting Socket")
     self._ResetInternalStates()
@@ -82,7 +83,15 @@ class GodotCarHelperClient():
     self._step_reward = float(data[0]) - self._total_reward
     self._total_reward += self._step_reward
     self._crash = bool(data[1] == 'True')
-    self._observation = data[2:11]
+    self._observation[0] = float(data[2])
+    self._observation[1] = float(data[3])
+    self._observation[2] = float(data[4])
+    self._observation[3] = float(data[5])
+    self._observation[4] = float(data[6])
+    self._observation[5] = float(data[7])
+    self._observation[6] = float(data[8])
+    self._observation[7] = float(data[9])
+    self._observation[8] = float(data[10])
 
 class GodotCarEnv(gym.Env):
   metadata = {'render.modes': ['human']}
@@ -93,15 +102,15 @@ class GodotCarEnv(gym.Env):
     self.godot_car_path = None # todo: set here
     
     self.min_sensor_distance = 0
-    self.max_sensor_distance = np.inf
-    self.min_speed = -np.inf
-    self.max_speed = +np.inf
-    self.min_yaw = -np.inf
-    self.max_yaw = +np.inf
+    self.max_sensor_distance = 100
+    self.min_speed = -10
+    self.max_speed = +100
+    self.min_yaw = -math.pi
+    self.max_yaw = +math.pi
     self.min_pos_x = 0
-    self.max_pos_x = np.inf
+    self.max_pos_x = 1280
     self.min_pos_y = 0
-    self.max_pos_y = np.inf
+    self.max_pos_y = 600
     self.low = np.array([self.min_sensor_distance,
                          self.min_sensor_distance,
                          self.min_sensor_distance,
@@ -125,8 +134,8 @@ class GodotCarEnv(gym.Env):
     self.max_throttle = +1
     self.min_brake = 0
     self.max_brake = +1
-    self.min_steer = -1
-    self.max_steer = +1
+    self.min_steer = -0.8
+    self.max_steer = +0.8
     self.action_space = spaces.Box(np.array([self.min_throttle, self.min_brake, self.min_steer]),
                                    np.array([self.max_throttle, self.max_brake, self.max_steer]),
                                    dtype=np.float32)  # throttle, brake, steer
@@ -143,6 +152,7 @@ class GodotCarEnv(gym.Env):
     return observation, reward, episode_over, {}
   def reset(self):
     self.client.Reset()
+    return self.client.GetObservation()
   def render(self, mode='human'):
     pass
   def close(self):

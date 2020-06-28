@@ -97,6 +97,12 @@ func _physics_process(delta):
 		ReportStatistics()
 		self.update()
 
+func WrapAngle(angle):
+	if angle >= 0:
+		return (fmod(angle+PI,2*PI) - PI)
+	else:
+		return (fmod(angle-PI,2*PI) + PI)
+
 func _draw():
 	DrawSensors()
 
@@ -156,10 +162,13 @@ func CalcDrivingForces():
 func CalcKinematicModel():
 	var acceleration : float = force_drive / mass_vehicle
 	velocity_longitudinal += acceleration * delta_step
+	if velocity_longitudinal < 0:
+		velocity_longitudinal = 0.0
 	# todo: psi_dot, betao
 	var beta : float = atan(l_r/(l_r+l_f) * tan(steering))
 	var psi_dot : float = velocity_longitudinal/l_r * sin(beta)
 	psi += psi_dot * delta_step * game_factor
+	psi = WrapAngle(psi)
 	x_dot = velocity_longitudinal * cos(psi+beta)
 	y_dot = velocity_longitudinal * sin(psi+beta)
 
@@ -233,6 +242,7 @@ func Sense():
 	SenseReponse()
 
 func SenseReponse():
+	print(psi)
 	if not manual_control:
 		if game_logic_node:
 			game_logic_node.SenseResponse(id, crash, sensor_readings[0], sensor_readings[1], sensor_readings[2], sensor_readings[3], sensor_readings[4], velocity_longitudinal, psi, position.x, position.y)
