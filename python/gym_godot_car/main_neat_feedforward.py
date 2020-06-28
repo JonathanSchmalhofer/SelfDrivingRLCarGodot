@@ -41,11 +41,11 @@ def get_scaled_observation(observation):
 def get_scaled_action(action):
     """Get full action, scaled from [0, 1] to the maximum values allowed by the environment/simulator/car."""
     # action = throttle, brake, steering
-    min_steer = -0.8
-    max_steer = +0.8
+    min_steer = -1.0
+    max_steer = +1.0
     return [action[0],
             action[1],
-            (action[2]+min_steer)*(max_steer-min_steer)]
+            (action[2]*(max_steer-min_steer))+min_steer]
 
 # Use the NN network phenotype and the agent act function.
 def eval_genome(genome, config):
@@ -53,8 +53,9 @@ def eval_genome(genome, config):
 
     fitnesses = []
 
+    env = gym.make('godot-car-v0')
     for runs in range(runs_per_net):
-        env = gym.make('godot-car-v0')
+        print(".", end='', flush=True)
 
         # You provide the directory to write to (can be an existing
         # directory, including one with existing data -- all monitor files
@@ -76,7 +77,6 @@ def eval_genome(genome, config):
 
             fitness += reward
         fitnesses.append(fitness)
-        time.sleep(0.1)
     # Close the env and write monitor result info to disk
     env.close()
     # The genome's fitness is its worst performance across all runs.
@@ -86,6 +86,7 @@ def eval_genome(genome, config):
 def eval_genomes(genomes, config):
     for genome_id, genome in genomes:
         genome.fitness = eval_genome(genome, config)
+    print("", flush=True)
 
 
 def run(config_path):

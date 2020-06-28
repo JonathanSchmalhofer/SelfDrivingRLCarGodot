@@ -1,0 +1,140 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://art/ui/font/montserrat_eb_42.tres" type="DynamicFont" id=1]
+[ext_resource path="res://art/ui/bar/bar_bg.png" type="Texture" id=2]
+[ext_resource path="res://art/ui/bar/bar_fill.png" type="Texture" id=3]
+[ext_resource path="res://art/ui/overlay_ui_observation.gd" type="Script" id=4]
+[ext_resource path="res://art/ui/bg/panel.png" type="Texture" id=5]
+[ext_resource path="res://art/car/Black_viper.png" type="Texture" id=6]
+
+[node name="Overlay_UI_Observation" type="Node2D"]
+scale = Vector2( 0.996278, 1 )
+script = ExtResource( 4 )
+
+[node name="Background" type="NinePatchRect" parent="."]
+margin_right = 320.0
+margin_bottom = 300.0
+rect_scale = Vector2( 1.00254, 1 )
+texture = ExtResource( 5 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ObservationLabel" type="Label" parent="Background"]
+margin_right = 320.0
+margin_bottom = 50.0
+rect_scale = Vector2( 0.989422, 0.931316 )
+custom_fonts/font = ExtResource( 1 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+text = "Observations"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Velocity" type="TextureProgress" parent="Background"]
+margin_left = 152.392
+margin_top = 251.734
+margin_right = 408.392
+margin_bottom = 283.734
+rect_scale = Vector2( 0.548273, 0.446892 )
+value = 50.0
+texture_under = ExtResource( 2 )
+texture_progress = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VelocityLabel" type="Label" parent="Background"]
+margin_left = 29.7381
+margin_top = 244.734
+margin_right = 80.7381
+margin_bottom = 258.734
+rect_scale = Vector2( 2, 2 )
+text = "Velocity"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Psi" type="Node2D" parent="Background"]
+position = Vector2( 156.397, 148.16 )
+
+[node name="Car" type="TextureRect" parent="Background/Psi"]
+margin_left = -31.2187
+margin_top = -33.8542
+margin_right = 224.781
+margin_bottom = 222.146
+rect_scale = Vector2( 0.255935, 0.24527 )
+texture = ExtResource( 6 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Sensor4" type="TextureProgress" parent="Background/Psi"]
+margin_left = -16.6439
+margin_top = 13.6063
+margin_right = 239.356
+margin_bottom = 45.6063
+rect_rotation = -180.0
+rect_scale = Vector2( 0.219429, 0.24 )
+value = 50.0
+texture_under = ExtResource( 2 )
+texture_progress = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Sensor3" type="TextureProgress" parent="Background/Psi"]
+margin_left = -19.9432
+margin_top = -11.9915
+margin_right = 236.057
+margin_bottom = 20.0085
+rect_rotation = -135.0
+rect_scale = Vector2( 0.219429, 0.24 )
+value = 50.0
+texture_under = ExtResource( 2 )
+texture_progress = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Sensor2" type="TextureProgress" parent="Background/Psi"]
+margin_left = -4.01617
+margin_top = -34.2257
+margin_right = 251.984
+margin_bottom = -2.22574
+rect_rotation = -90.0
+rect_scale = Vector2( 0.219429, 0.24 )
+value = 50.0
+texture_under = ExtResource( 2 )
+texture_progress = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Sensor1" type="TextureProgress" parent="Background/Psi"]
+margin_left = 13.605
+margin_top = -18.3589
+margin_right = 269.605
+margin_bottom = 13.6412
+rect_rotation = -44.9999
+rect_scale = Vector2( 0.219429, 0.24 )
+value = 50.0
+texture_under = ExtResource( 2 )
+texture_progress = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Sensor0" type="TextureProgress" parent="Background/Psi"]
+margin_left = 13.6828
+margin_top = 5.92624
+margin_right = 269.683
+margin_bottom = 37.9262
+rect_scale = Vector2( 0.219429, 0.24 )
+value = 50.0
+texture_under = ExtResource( 2 )
+texture_progress = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}

@@ -4,7 +4,7 @@ extends KinematicBody2D
 ### Constants
 
 # Other
-const game_factor : float = 4.2 # increase real dynamics to be more game like, manually tuned
+const game_factor : float = 3.0 # increase real dynamics to be more game like, manually tuned
 
 # Input
 const throttle_rise_factor : float = 0.2
@@ -13,7 +13,7 @@ const brake_rise_factor : float = 0.3
 const brake_fall_factor : float = -0.4
 const steering_rise_factor : float = 0.08
 const steering_fall_factor : float = 0.2
-const max_steering : float = 0.8
+const max_steering : float = 1.0
 
 # Vehicle and World Parameters
 const torque_engine_max : float = 180.0 * game_factor # make acceleration more arcade like
@@ -69,6 +69,8 @@ var id : String
 var manual_control : bool = false
 var received_step_command : bool = false
 var game_logic_node
+var action_ui_node
+var observation_ui_node
 var crash : bool = false
 var last_position : Vector2 = Vector2(0.0, 0.0)
 
@@ -82,6 +84,8 @@ var last_position : Vector2 = Vector2(0.0, 0.0)
 func _ready():
 	Reset()
 	game_logic_node = get_node("/root/game/GameLogic")
+	action_ui_node = get_node("/root/game/Overlay_UI_Action")
+	observation_ui_node = get_node("/root/game/Overlay_UI_Observation")
 
 func _physics_process(delta):
 	if manual_control or received_step_command:
@@ -124,6 +128,9 @@ func GetAndCalcInput(delta):
 	else:
 		delta_step = step_size
 		GetExternalInput()
+	action_ui_node.RotateWheel(steering)
+	action_ui_node.SetThrottle(throttle)
+	action_ui_node.SetBrake(brake)
 
 func GetAndCalcUserInput():
 	# Determine Inputs from User
@@ -145,6 +152,7 @@ func GetAndCalcUserInput():
 	brake = clamp(brake, 0, 1) # brake ranges from [0;1]
 	steering += steering_delta
 	steering = clamp(steering, -max_steering, max_steering)
+	print(steering)
 
 func GetExternalInput():
 	throttle = clamp(throttle_external, 0, 1) # throttle ranges from [0;1]
@@ -242,7 +250,9 @@ func Sense():
 	SenseReponse()
 
 func SenseReponse():
-	print(psi)
+	observation_ui_node.SetPsi(psi)
+	observation_ui_node.SetDistance(sensor_readings[0], sensor_readings[1], sensor_readings[2], sensor_readings[3], sensor_readings[4])
+	observation_ui_node.SetVelocity(velocity_longitudinal)
 	if not manual_control:
 		if game_logic_node:
 			game_logic_node.SenseResponse(id, crash, sensor_readings[0], sensor_readings[1], sensor_readings[2], sensor_readings[3], sensor_readings[4], velocity_longitudinal, psi, position.x, position.y)

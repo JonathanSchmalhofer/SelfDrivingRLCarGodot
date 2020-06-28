@@ -1,8 +1,11 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://core/Server.gd" type="Script" id=1]
 [ext_resource path="res://core/track/track.tscn" type="PackedScene" id=2]
 [ext_resource path="res://core/GameLogic.gd" type="Script" id=3]
+[ext_resource path="res://art/ui/overlay_ui_action.tscn" type="PackedScene" id=4]
+[ext_resource path="res://art/ui/overlay_ui_observation.tscn" type="PackedScene" id=5]
+[ext_resource path="res://art/ui/overlay_control.tscn" type="PackedScene" id=6]
 
 [node name="game" type="Node2D"]
 
@@ -75,3 +78,13 @@ align = 2
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="Overlay_Control" parent="." instance=ExtResource( 6 )]
+position = Vector2( 247.67, 0 )
+
+[node name="Overlay_UI_Action" parent="." instance=ExtResource( 4 )]
+position = Vector2( 29.5643, 308.127 )
+scale = Vector2( 1.00773, 0.993197 )
+
+[node name="Overlay_UI_Observation" parent="." instance=ExtResource( 5 )]
+position = Vector2( 929.931, 308.127 )

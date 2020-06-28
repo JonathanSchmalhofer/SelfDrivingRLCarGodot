@@ -18,7 +18,7 @@ const pos_init : Vector2 = Vector2(630, 280)
 const rot_init : float = 0.0
 const scale : float = 0.4
 const weight_distance : float = 1.0
-const weight_steps : float = 0.5
+const weight_steps : float = 1.0
 
 # Called when the node enters the scene tree for the first time.
 func _ready():

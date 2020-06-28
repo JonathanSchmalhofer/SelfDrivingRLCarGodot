@@ -103,7 +103,7 @@ class GodotCarEnv(gym.Env):
     
     self.min_sensor_distance = 0
     self.max_sensor_distance = 100
-    self.min_speed = -10
+    self.min_speed =    0
     self.max_speed = +100
     self.min_yaw = -math.pi
     self.max_yaw = +math.pi
