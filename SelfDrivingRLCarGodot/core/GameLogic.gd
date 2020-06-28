@@ -13,6 +13,7 @@ var step_label
 var max_score : float = 0.0
 var max_distance : float = 0.0
 var max_steps : float = 0.0
+var endless_mode : bool = false
 
 const pos_init : Vector2 = Vector2(630, 280)
 const rot_init : float = 0.0
@@ -39,6 +40,9 @@ func _process(_delta):
 		if (car_node):
 			car_node.add_child(CreateCar(UUID.v4(), true))
 	UpdateLabels()
+
+func SetEndlessMode(mode):
+	endless_mode = mode
 
 func ResetStatistics():
 	max_score = 0.0
@@ -114,7 +118,12 @@ func Control(uuid, throttle, brake, steering):
 
 func SenseResponse(uuid, crash, sensor_0, sensor_1, sensor_2, sensor_3, sensor_4, velocity, yaw, pos_x, pos_y):
 	if server_node:
-		server_node.SenseResponse(uuid, max_score, crash, sensor_0, sensor_1, sensor_2, sensor_3, sensor_4, velocity, yaw, pos_x, pos_y)
+		var send_score : float
+		if endless_mode:
+			send_score = 0.0 # the score will be reported as 0, thus the Gym Environment will not cancel
+		else:
+			send_score = max_score
+		server_node.SenseResponse(uuid, send_score, crash, sensor_0, sensor_1, sensor_2, sensor_3, sensor_4, velocity, yaw, pos_x, pos_y)
 
 func UpdateStatistics(distance, steps):
 	if distance > max_distance or steps > max_steps:

@@ -2,6 +2,8 @@ extends Node2D
 
 onready var action_checkbox = get_node("Action")
 onready var observation_checkbox = get_node("Observation")
+onready var endless_checkbox = get_node("Endless")
+onready var gamelogic_node = get_node("/root/game/GameLogic")
 
 var overlay_action_node
 var overlay_observation_node
@@ -9,6 +11,7 @@ var overlay_observation_node
 func _ready():
 	action_checkbox.connect("pressed", self, "_action_checkbox_pressed")
 	observation_checkbox.connect("pressed", self, "_observation_checkbox_pressed")
+	endless_checkbox.connect("pressed", self, "_endless_checkbox_pressed")
 	overlay_action_node = get_node("/root/game/Overlay_UI_Action")
 	overlay_observation_node = get_node("/root/game/Overlay_UI_Observation")
 
@@ -31,3 +34,9 @@ func _observation_checkbox_pressed():
 		var color = overlay_observation_node.modulate
 		color.a = 0.0
 		overlay_observation_node.set_modulate(color)
+
+func _endless_checkbox_pressed():
+	if endless_checkbox.pressed:
+		gamelogic_node.SetEndlessMode(true)
+	else:
+		gamelogic_node.SetEndlessMode(false)

@@ -23,3 +23,12 @@ text = "Observation"
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="Endless" type="CheckBox" parent="."]
+margin_left = 173.826
+margin_right = 279.826
+margin_bottom = 24.0
+text = "Run Endless"
+__meta__ = {
+"_edit_use_anchors_": false
+}
