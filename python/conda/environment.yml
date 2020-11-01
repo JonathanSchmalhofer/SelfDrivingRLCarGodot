@@ -14,3 +14,4 @@ dependencies:
         - gym==0.17.2
         - numpy==1.18.1
         - ffmpeg==1.4
+        - neat-python==0.92
