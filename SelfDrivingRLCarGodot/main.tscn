@@ -4,7 +4,7 @@
 [ext_resource path="res://core/track/track.tscn" type="PackedScene" id=2]
 [ext_resource path="res://core/GameLogic.gd" type="Script" id=3]
 [ext_resource path="res://art/ui/overlay_ui_action.tscn" type="PackedScene" id=4]
-[ext_resource path="res://art/ui/overlay_ui_observation.tscn" type="PackedScene" id=5]
+[ext_resource path="res://art/ui/overlay_ui_observation_grid.tscn" type="PackedScene" id=5]
 [ext_resource path="res://art/ui/overlay_control.tscn" type="PackedScene" id=6]
 
 [node name="game" type="Node2D"]
@@ -88,3 +88,4 @@ scale = Vector2( 1.00773, 0.993197 )
 
 [node name="Overlay_UI_Observation" parent="." instance=ExtResource( 5 )]
 position = Vector2( 929.931, 308.127 )
+scale = Vector2( 0.993, 0.993 )

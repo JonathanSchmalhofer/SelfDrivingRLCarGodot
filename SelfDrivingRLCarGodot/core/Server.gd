@@ -2,8 +2,9 @@ extends Node
 
 const UUID = preload("res://core/uuid.gd")
 
-const buffer_size : int = 1024
+const buffer_size : int = int(pow(2,16))
 const header_size : int = 6
+const use_grid_sensor : bool = true
 
 var server
 var tcp_stream_dict : Dictionary
@@ -50,7 +51,7 @@ func CollectData():
 				var size_data = PoolByteArray()
 				while tcp_stream_dict[key].get_available_bytes() > 0 and remaining_attempts > 0:
 					var return_data = tcp_stream_dict[key].get_data(1) # get char by char
-					var error = return_data[0]
+					var _error = return_data[0]
 					var data = return_data[1]
 					next_char = data.get_string_from_utf8()
 					remaining_attempts -= 1
@@ -99,9 +100,9 @@ func ParseData():
 
 func CloseConnection(key):
 	tcp_stream_dict[key].disconnect_from_host()
-	tcp_stream_dict.erase(key)
-	buffer_dict.erase(key)
-	msg_size_dict.erase(key)
+	var _ret = tcp_stream_dict.erase(key)
+	_ret = buffer_dict.erase(key)
+	_ret = msg_size_dict.erase(key)
 
 func RegisterCommand(key):
 	if game_logic_node:
@@ -114,12 +115,15 @@ func ResetCommand(key):
 
 func SenseCommand(key):
 	if game_logic_node:
-		game_logic_node.Sense(key)
+		if use_grid_sensor:
+			game_logic_node.SenseGrid(key)
+		else:
+			game_logic_node.Sense(key)
 
 func CloseCommand(key):
-	CloseConnection(key)
 	if game_logic_node:
 		game_logic_node.Close(key)
+	CloseConnection(key)
 
 func HandleCommandWithArguments(key, command):
 	if HandleControlCommand(key, command):
@@ -136,10 +140,10 @@ func HandleControlCommand(key, command):
 			var steering : float = float(result.get_string("steering"))
 			if game_logic_node:
 				game_logic_node.Control(key, throttle, brake, steering)
+				game_logic_node.Step(key)
 			control_counter += 1
-			if control_counter >= tcp_stream_dict.size():
-				if game_logic_node:
-					game_logic_node.Step()
+			#if control_counter >= tcp_stream_dict.size():
+			#	if game_logic_node:
 			return true
 	return false
 
@@ -151,6 +155,27 @@ func SenseResponse(uuid, max_score, crash, sensor_0, sensor_1, sensor_2, sensor_
 			if retval[0]:
 				print(String(uuid) + "Error: " + String(retval[0]))
 				print(String(uuid) + "Data: " + String(retval[1]))
+
+func SenseResponseGrid(uuid, max_score, crash, sensor_screenshot : Image, velocity, yaw, pos_x, pos_y):
+	if tcp_stream_dict[uuid]:
+		if tcp_stream_dict[uuid].is_connected_to_host():
+			var response : String 
+			response += String("{0}".format({0: "%010.5f" % max_score})) + ";"
+			response += String(crash) + ";"
+			response += String("{0}".format({0: "%010.5f" % velocity})) + ";"
+			response += String("{0}".format({0: "%010.5f" % yaw})) + ";"
+			response += String("{0}".format({0: "%010.5f" % pos_x})) + ";"
+			response += String("{0}".format({0: "%010.5f" % pos_y})) + ";"
+			sensor_screenshot.convert(Image.FORMAT_RGB8)
+			tcp_stream_dict[uuid].put_data(response.to_ascii() + sensor_screenshot.get_data())
+			#sensor_screenshot.save_png("C:\\work\\screenshot.png")
+			#if retval[0]:
+			#	print(String(uuid) + "Error: " + String(retval[0]))
+			#	print(String(uuid) + "Data: " + String(retval[1]))
+			#retval = tcp_stream_dict[uuid].put_partial_data(sensor_screenshot.get_data())
+			#if retval[0]:
+			#	print(String(uuid) + "Error: " + String(retval[0]))
+			#	print(String(uuid) + "Data: " + String(retval[1]))
 
 func RegisterResponse(uuid):
 	if tcp_stream_dict[uuid]:

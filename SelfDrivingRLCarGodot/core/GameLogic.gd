@@ -86,16 +86,31 @@ func Sense(uuid):
 			if child.GetId() == uuid:
 				child.Sense()
 
+func SenseGrid(uuid):
+	if (car_node):
+		for child in car_node.get_children():
+			if child.GetId() == uuid:
+				child.SenseGrid()
+
 func Reset(uuid):
 	if (car_node):
 		for child in car_node.get_children():
 			if child.GetId() == uuid:
+				child.transform = Transform2D(rot_init, pos_init)				
+				child.scale = Vector2(scale, scale)
 				child.Reset()
 
-func Step():
+func StepAll():
 	if (car_node):
 		for child in car_node.get_children():
 			child.Step()
+	UpdateLabels()
+
+func Step(uuid):
+	if (car_node):
+		for child in car_node.get_children():
+			if child.GetId() == uuid:
+				child.Step()
 	UpdateLabels()
 
 func Close(uuid):
@@ -124,6 +139,15 @@ func SenseResponse(uuid, crash, sensor_0, sensor_1, sensor_2, sensor_3, sensor_4
 		else:
 			send_score = max_score
 		server_node.SenseResponse(uuid, send_score, crash, sensor_0, sensor_1, sensor_2, sensor_3, sensor_4, velocity, yaw, pos_x, pos_y)
+
+func SenseResponseGrid(uuid, crash, sensor_screenshot : Image, velocity, yaw, pos_x, pos_y):
+	if server_node:
+		var send_score : float
+		if endless_mode:
+			send_score = 0.0 # the score will be reported as 0, thus the Gym Environment will not cancel
+		else:
+			send_score = max_score
+		server_node.SenseResponseGrid(uuid, send_score, crash, sensor_screenshot, velocity, yaw, pos_x, pos_y)
 
 func UpdateStatistics(distance, steps):
 	if distance > max_distance or steps > max_steps:

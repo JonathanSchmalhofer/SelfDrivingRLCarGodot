@@ -1,0 +1,75 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://art/ui/font/montserrat_eb_42.tres" type="DynamicFont" id=1]
+[ext_resource path="res://art/ui/bar/bar_bg.png" type="Texture" id=2]
+[ext_resource path="res://art/ui/bar/bar_fill.png" type="Texture" id=3]
+[ext_resource path="res://art/ui/overlay_ui_observation_grid.gd" type="Script" id=4]
+[ext_resource path="res://art/ui/bg/panel.png" type="Texture" id=5]
+[ext_resource path="res://art/car/Black_viper.png" type="Texture" id=6]
+[ext_resource path="res://art/ui/grid/grid.tscn" type="PackedScene" id=7]
+
+[node name="Overlay_UI_Observation" type="Node2D"]
+scale = Vector2( 0.996278, 1 )
+script = ExtResource( 4 )
+
+[node name="Background" type="NinePatchRect" parent="."]
+margin_right = 320.0
+margin_bottom = 300.0
+rect_scale = Vector2( 1.00254, 1 )
+texture = ExtResource( 5 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ObservationLabel" type="Label" parent="Background"]
+margin_right = 320.0
+margin_bottom = 50.0
+rect_scale = Vector2( 0.989422, 0.931316 )
+custom_fonts/font = ExtResource( 1 )
+custom_colors/font_color = Color( 1, 1, 1, 1 )
+text = "Observations"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Velocity" type="TextureProgress" parent="Background"]
+margin_left = 152.392
+margin_top = 251.734
+margin_right = 408.392
+margin_bottom = 283.734
+rect_scale = Vector2( 0.548273, 0.446892 )
+value = 50.0
+texture_under = ExtResource( 2 )
+texture_progress = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VelocityLabel" type="Label" parent="Background"]
+margin_left = 29.7381
+margin_top = 244.734
+margin_right = 80.7381
+margin_bottom = 258.734
+rect_scale = Vector2( 2, 2 )
+text = "Velocity"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Psi" type="Node2D" parent="Background"]
+position = Vector2( 156.397, 148.16 )
+
+[node name="grid" parent="Background/Psi" instance=ExtResource( 7 )]
+
+[node name="Car" type="TextureRect" parent="Background/Psi"]
+visible = false
+margin_left = -30.3267
+margin_top = -33.8542
+margin_right = 225.673
+margin_bottom = 222.146
+rect_scale = Vector2( 0.255935, 0.24527 )
+texture = ExtResource( 6 )
+__meta__ = {
+"_edit_use_anchors_": false
+}

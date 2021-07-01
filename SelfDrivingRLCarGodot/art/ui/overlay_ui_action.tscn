@@ -71,3 +71,25 @@ texture_progress = ExtResource( 4 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="ThrottleLabel" type="Label" parent="Background"]
+margin_left = 193.294
+margin_top = 260.411
+margin_right = 243.294
+margin_bottom = 274.411
+text = "Throttle"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="BrakeLabel" type="Label" parent="Background"]
+margin_left = 253.184
+margin_top = 260.082
+margin_right = 303.184
+margin_bottom = 274.082
+text = "Brake"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}

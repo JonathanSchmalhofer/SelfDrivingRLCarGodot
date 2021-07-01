@@ -5,6 +5,8 @@ extends KinematicBody2D
 
 # Other
 const game_factor : float = 3.0 # increase real dynamics to be more game like, manually tuned
+const grid_size_rows : int = 84
+const grid_size_cols : int = 84
 
 # Input
 const throttle_rise_factor : float = 0.2
@@ -47,7 +49,6 @@ var throttle_external : float = 0.0
 var brake_external : float = 0.0
 var steering_external : float = 0.0
 
-
 # Intermediate States
 var force_drive : float = 0.0
 
@@ -60,6 +61,7 @@ var psi : float = 0.0
 # Sensor
 var sensor_readings : Array = [0.0, 0.0, 0.0, 0.0, 0.0]
 var sensor_hits : Array = [Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0), Vector2(0.0, 0.0)]
+var sensor_screenshot : Image
 
 # Other
 var step_counter : float = 0.0
@@ -96,8 +98,11 @@ func _physics_process(delta):
 			CalcKinematicModel()
 			UpdateNodes()
 			CalcStatistics()
-		CalcSensors()
-		SenseReponse()
+		#todo: decide which method to clal depending on Server.gd setting
+		#CalcSensors()
+		#SenseReponse()
+		CalcSensorGrid()
+		SenseReponseGrid()
 		ReportStatistics()
 		self.update()
 
@@ -152,13 +157,12 @@ func GetAndCalcUserInput():
 	brake = clamp(brake, 0, 1) # brake ranges from [0;1]
 	steering += steering_delta
 	steering = clamp(steering, -max_steering, max_steering)
-	print(steering)
+	#print(steering)
 
 func GetExternalInput():
 	throttle = clamp(throttle_external, 0, 1) # throttle ranges from [0;1]
 	brake = clamp(brake_external, 0, 1) # brake ranges from [0;1]
 	steering = clamp(steering_external, -max_steering, max_steering)
-	
 
 func CalcDrivingForces():
 	var force_engine : float = throttle * torque_engine_max * i_differential * i_gear / r_wheel
@@ -203,6 +207,14 @@ func CalcSensors():
 		if result:
 			target_position = result.position
 		sensor_readings[idx] = (target_position-position).length()
+
+func CalcSensorGrid():
+	var corner_rect = position - Vector2(42,42)
+	var rect_around_car = Rect2(corner_rect,Vector2(84,84))
+	sensor_screenshot = get_viewport().get_texture().get_data()
+	sensor_screenshot.flip_y()
+	sensor_screenshot = sensor_screenshot.get_rect(rect_around_car)
+	#sensor_screenshot.save_png("C:\\work\\screenshot.png")
 
 func DrawSensors():
 	for idx in sensor_directions.size():
@@ -249,6 +261,9 @@ func Control(_throttle, _brake, _steering):
 func Sense():
 	SenseReponse()
 
+func SenseGrid():
+	SenseReponseGrid()
+
 func SenseReponse():
 	observation_ui_node.SetPsi(psi)
 	observation_ui_node.SetDistance(sensor_readings[0], sensor_readings[1], sensor_readings[2], sensor_readings[3], sensor_readings[4])
@@ -256,6 +271,14 @@ func SenseReponse():
 	if not manual_control:
 		if game_logic_node:
 			game_logic_node.SenseResponse(id, crash, sensor_readings[0], sensor_readings[1], sensor_readings[2], sensor_readings[3], sensor_readings[4], velocity_longitudinal, psi, position.x, position.y)
+
+func SenseReponseGrid():
+	observation_ui_node.SetPsi(psi)
+	observation_ui_node.SetDistanceGrid(sensor_screenshot)
+	observation_ui_node.SetVelocity(velocity_longitudinal)
+	if not manual_control:
+		if game_logic_node:
+			game_logic_node.SenseResponseGrid(id, crash, sensor_screenshot, velocity_longitudinal, psi, position.x, position.y)
 
 func ReportStatistics():
 	if game_logic_node:
