@@ -11,7 +11,6 @@ var tcp_stream_dict : Dictionary
 var tcp_back_stream_dict : Dictionary
 var buffer_dict : Dictionary
 var msg_size_dict : Dictionary
-var control_counter : int = 0
 
 var game_logic_node
 
@@ -141,9 +140,6 @@ func HandleControlCommand(key, command):
 			if game_logic_node:
 				game_logic_node.Control(key, throttle, brake, steering)
 				game_logic_node.Step(key)
-			control_counter += 1
-			#if control_counter >= tcp_stream_dict.size():
-			#	if game_logic_node:
 			return true
 	return false
 
@@ -168,14 +164,6 @@ func SenseResponseGrid(uuid, max_score, crash, sensor_screenshot : Image, veloci
 			response += String("{0}".format({0: "%010.5f" % pos_y})) + ";"
 			sensor_screenshot.convert(Image.FORMAT_RGB8)
 			tcp_stream_dict[uuid].put_data(response.to_ascii() + sensor_screenshot.get_data())
-			#sensor_screenshot.save_png("C:\\work\\screenshot.png")
-			#if retval[0]:
-			#	print(String(uuid) + "Error: " + String(retval[0]))
-			#	print(String(uuid) + "Data: " + String(retval[1]))
-			#retval = tcp_stream_dict[uuid].put_partial_data(sensor_screenshot.get_data())
-			#if retval[0]:
-			#	print(String(uuid) + "Error: " + String(retval[0]))
-			#	print(String(uuid) + "Data: " + String(retval[1]))
 
 func RegisterResponse(uuid):
 	if tcp_stream_dict[uuid]:
