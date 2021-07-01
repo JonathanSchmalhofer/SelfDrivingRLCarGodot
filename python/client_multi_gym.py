@@ -103,13 +103,22 @@ def step(client):
     observation = client.get_observation()
     episode_over = client.get_episode_status()
 
-client = GodotCarHelperClient()
+client1 = GodotCarHelperClient()
+step(client1)
+client1.close()
+
+client1 = GodotCarHelperClient()
+client2 = GodotCarHelperClient()
 
 for i in range(100):
-    step(client)
+    step(client1)
+    step(client2)
 
-client.reset()
+client1.reset()
+client2.reset()
 for i in range(100):
-    step(client)
+    step(client1)
+    step(client2)
 
-client.close()
+client1.close()
+client2.close()

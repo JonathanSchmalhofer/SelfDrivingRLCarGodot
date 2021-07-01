@@ -7,7 +7,6 @@ def DoEpisode():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(1) # 1 second
     s.connect((TCP_IP, TCP_PORT))
-
     #print("   REGISTER");
     s.send("(HEAD:10)(REGISTER)".encode('utf-8'))
     data = s.recv(BUFFER_SIZE)
