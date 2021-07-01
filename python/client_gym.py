@@ -82,15 +82,15 @@ class GodotCarHelperClient():
     command_head = "(HEAD:{length:d})".format(length=len(command_body))
     command = command_head+command_body
     self._socket.send(command.encode('utf-8'))
-    #data = self._socket.recv(self._buffer_size).decode('utf-8').split(';')
-    #self._step_reward = float(data[0]) - self._total_reward
-    #self._total_reward += self._step_reward
-    #self._crash = data[1]
-    #self._sensor_readings = data[2:7]
-    #self._speed = data[7]
-    #self._yaw = data[8]
-    #self._pos_x = data[9]
-    #self._pos_y = data[10]
+    data = self._socket.recv(self._buffer_size).decode('utf-8').split(';')
+    self._step_reward = float(data[0]) - self._total_reward
+    self._total_reward += self._step_reward
+    self._crash = data[1]
+    self._sensor_readings = data[2:7]
+    self._speed = data[7]
+    self._yaw = data[8]
+    self._pos_x = data[9]
+    self._pos_y = data[10]
 
 def step(client):
     throttle = float(0.5)

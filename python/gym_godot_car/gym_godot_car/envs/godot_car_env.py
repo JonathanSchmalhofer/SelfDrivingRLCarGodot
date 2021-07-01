@@ -6,6 +6,7 @@ import numpy as np
 import socket
 from enum import Enum
 import math
+from time import sleep
 
 class Status(Enum):
     INIT = 0
@@ -15,18 +16,19 @@ class Status(Enum):
 
 class GodotCarHelperClient():
   def __init__(self):
+    self._debug = False
     self._ip = '127.0.0.1'
     self._port = 42424
     self._buffer_size = 1024
     self._socket = None
     self._Connect()
+    self._Register()
     self._status = Status.INIT
     self._step_reward = 0.0
     self._total_reward = 0.0
     self._crash = False
     self._observation = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     self._id = ""
-    self._debug = False
   def _DebugPrint(self, msg):
     if self._debug:
       self._DebugPrint(msg)
@@ -46,6 +48,7 @@ class GodotCarHelperClient():
   def Close(self):
     if self._socket:
         self._socket.send("(HEAD:7)(CLOSE)".encode('utf-8'))
+        sleep(0.1)
         self._socket.close()
         self._DebugPrint("Closing Socket")
     self._socket = None
@@ -71,9 +74,10 @@ class GodotCarHelperClient():
   def Reset(self):
     self._DebugPrint("Resetting Socket")
     self._ResetInternalStates()
-    self.Close()
-    self._Connect()
-    self._Register()
+    command_body = "(RESET)"
+    command_head = "(HEAD:{length:d})".format(length=len(command_body))
+    command = command_head+command_body
+    self._socket.send(command.encode('utf-8'))
   def SetControl(self, control):
     command_body = "(CONTROL:{throttle:2.3f};{brake:2.3f};{steer:2.3f})".format(throttle=control[0], brake=control[1], steer=control[2])
     command_head = "(HEAD:{length:d})".format(length=len(command_body))
@@ -95,12 +99,10 @@ class GodotCarHelperClient():
 
 class GodotCarEnv(gym.Env):
   metadata = {'render.modes': ['human']}
-
   def __init__(self):
     self.client = GodotCarHelperClient()
     self.server_process = None # todo: set here
     self.godot_car_path = None # todo: set here
-    
     self.min_sensor_distance = 0
     self.max_sensor_distance = 100
     self.min_speed =    0
