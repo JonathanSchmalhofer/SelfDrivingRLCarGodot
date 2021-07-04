@@ -19,9 +19,9 @@ This project was meant as demo showcase how Godot Engine can be used as simulati
 The training algorithm itself is implemented in Python, which allows using most openly available implementations for machine learning applications (e.g. using PyTorch, Tensorflow, etc.).
 At the same time, the easy to use Godot Engine allows quickly implementing 2D as well as 3D simulation environments that can be used for RL interactions.
  
-The communication is very rudimentary implemented using TCP socket communication. In this example, Godot Engine is acting as server while the python code for trainings connects as client. This was intended to easily enable multi-agent training in parallel in one single simulation instance (as inspired by [Samuel Arzt](https://www.youtube.com/watch?v=Aut32pR5PQA "YouTube video from Samuel Arzt").
+The communication is very rudimentary implemented using TCP socket communication. In this example, Godot Engine is acting as server while the python code for trainings connects as client. This was intended to easily enable multi-agent training in parallel in one single simulation instance (as inspired by [Samuel Arzt](https://www.youtube.com/watch?v=Aut32pR5PQA "YouTube video from Samuel Arzt")).
  
-The algorithm used for training the agent is called NEAT and is based on the wonderful open-source package (neat-python from CodeReclaimers)[https://github.com/CodeReclaimers/neat-python]. No changes to the core-algorithm itself were made.
+The algorithm used for training the agent is called NEAT and is based on the wonderful open-source package [neat-python from CodeReclaimers](https://github.com/CodeReclaimers/neat-python). No changes to the core-algorithm itself were made.
 
 
 
@@ -85,12 +85,12 @@ Acknowledgements
 ------------
 
 * The idea for this project was inspired by [Samuel Arzt](https://www.youtube.com/watch?v=Aut32pR5PQA). Thank you very much for your contributions on [YouTube](https://www.youtube.com/c/SamuelArzt/videos).
-* The entire NEAT-algorithm implementation was borrowed from (neat-python from CodeReclaimers)[https://github.com/CodeReclaimers/neat-python] and stripped down to a minimum for better understanding.
+* The entire NEAT-algorithm implementation was borrowed from [neat-python from CodeReclaimers](https://github.com/CodeReclaimers/neat-python) and stripped down to a minimum for better understanding.
 * One of the most entertaining and easy to understand (short) explanations of NEAT was provided by [SethBling](https://www.youtube.com/channel/UC8aG3LDTDwNR1UQhSn9uVrw) and his [MarI/O](https://www.youtube.com/watch?v=qv6UVOQ0F44) project.
 * The tileset used in Godot was taken from Kenney's [Racing Pack](https://opengameart.org/content/racing-pack) published on [OpenGameArt.org](http://www.opengameart.org). Go check out [Kenney.nl](http://www.kenney.nl) for more incredible free game assets.
 * The car asset used in Godot was taken from sujit1717's/Unlucky Studio's [free top-down car sprites](https://opengameart.org/content/free-top-down-car-sprites-by-unlucky-studio) published on [OpenGameArt.org](http://www.opengameart.org). Go check out their [website](http://unluckystudio.com/support-free-game-art/) and please support them for publishing free game art.
 
-# buy-me-a-coffee
+# Support
 Liked some of my work? Buy me a coffee (or more likely a beer).
 
 <a href="https://www.buymeacoffee.com/JonathanS" target="_blank"><img src="https://bmc-cdn.nyc3.digitaloceanspaces.com/BMC-button-images/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
