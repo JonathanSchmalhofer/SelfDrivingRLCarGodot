@@ -78,5 +78,5 @@ Acknowledgements
 * The idea for this project was inspired by [Samuel Arzt](https://www.youtube.com/watch?v=Aut32pR5PQA). Thank you very much for your contributions on [YouTube](https://www.youtube.com/c/SamuelArzt/videos).
 * The entire NEAT-algorithm implementation was borrowed from (neat-python from CodeReclaimers)[https://github.com/CodeReclaimers/neat-python] and stripped down to a minimum for better understanding.
 * One of the most entertaining and easy to understand (short) explanations of NEAT was provided by [SethBling](https://www.youtube.com/channel/UC8aG3LDTDwNR1UQhSn9uVrw) and his [MarI/O](https://www.youtube.com/watch?v=qv6UVOQ0F44) project.
-
-
+* The tileset used in Godot was taken from Kenney's [Racing Pack](https://opengameart.org/content/racing-pack) published on [OpenGameArt.org](http://www.opengameart.org). Go check out [Kenney.nl](http://www.kenney.nl) for more incredible free game assets.
+* The car asset used in Godot was taken from sujit1717's/Unlucky Studio's [free top-down car sprites](https://opengameart.org/content/free-top-down-car-sprites-by-unlucky-studio) published on [OpenGameArt.org](http://www.opengameart.org). Go check out their [website](http://unluckystudio.com/support-free-game-art/) and please support them for publishing free game art.
