@@ -41,7 +41,7 @@ $ git clone https://github.com/JonathanSchmalhofer/SelfDrivingRLCarGodot
 
 To install all dependencies with Anaconda run
 ```bash
-$ cd SelfDrivingRLCarGodot\python\conda
+$ cd SelfDrivingRLCarGodot/python/conda
 $ conda env create -f environment.yml`
 ```
 
