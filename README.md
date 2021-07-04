@@ -61,11 +61,11 @@ $ echo $CONDA_DEFAULT_ENV # this should output godot-sl-car
 Start Training
 ------------
 
-* Import and open and project in Godot from the subfolder `SelfDrivingRLCarGodot`. No changes should be needed, you can directly hit the "Play" button to start the simulation server.
-* Open a new terminal and activate the conda environment using `$ conda activate godot-sl-car`.
-* Change to the directory of the `gym_godot_car` python package `$ cd python/gym_godot_car`.
-* Run the the script for training a feedforward network using NEAT `$ python train_neat_feedforward.py`
-* Watch and Enjoy!
+1. Import and open and project in Godot from the subfolder `SelfDrivingRLCarGodot`. No changes should be needed, you can directly hit the "Play" button to start the simulation server.
+2. Open a new terminal and activate the conda environment using `$ conda activate godot-sl-car`.
+3. Change to the directory of the `gym_godot_car` python package `$ cd python/gym_godot_car`.
+4. Run the the script for training a feedforward network using NEAT `$ python train_neat_feedforward.py`
+4. Watch and Enjoy!
 
 Last seconds of training process before the first agent manages to finish the course:
 
