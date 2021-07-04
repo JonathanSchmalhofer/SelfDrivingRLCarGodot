@@ -72,6 +72,15 @@ Last seconds of training process before the first agent manages to finish the co
 ![Last Seconds of Training Agent](doc/img/animation_training.gif)
 
 
+Known and/or Open Issues
+------------
+
+* With screensaver activated, the TCP connection between python and Godot might time out. I did not find a workaround for this and did not find the time to implement a more stable connection (e.g. using some ping-message if a response was expected but not received).
+* The entire setup should also work on Windows, however I only tested it on Linux / Ubuntu 20.04.
+* The Godot project should also work with most Godot 3+ projects, however I only tested the latest version at time of commit (i.e. 3.3.2).
+* I always wanted to draw the current topology as in MarI/O but found my Godot skills were too shabby to properly do this in a reasonable time. I am open for suggestions though, how to approach this.
+
+
 Acknowledgements
 ------------
 
@@ -80,3 +89,9 @@ Acknowledgements
 * One of the most entertaining and easy to understand (short) explanations of NEAT was provided by [SethBling](https://www.youtube.com/channel/UC8aG3LDTDwNR1UQhSn9uVrw) and his [MarI/O](https://www.youtube.com/watch?v=qv6UVOQ0F44) project.
 * The tileset used in Godot was taken from Kenney's [Racing Pack](https://opengameart.org/content/racing-pack) published on [OpenGameArt.org](http://www.opengameart.org). Go check out [Kenney.nl](http://www.kenney.nl) for more incredible free game assets.
 * The car asset used in Godot was taken from sujit1717's/Unlucky Studio's [free top-down car sprites](https://opengameart.org/content/free-top-down-car-sprites-by-unlucky-studio) published on [OpenGameArt.org](http://www.opengameart.org). Go check out their [website](http://unluckystudio.com/support-free-game-art/) and please support them for publishing free game art.
+
+# buy-me-a-coffee
+Liked some of my work? Buy me a coffee (or more likely a beer).
+
+<a href="https://www.buymeacoffee.com/JonathanS" target="_blank"><img src="https://bmc-cdn.nyc3.digitaloceanspaces.com/BMC-button-images/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
+
