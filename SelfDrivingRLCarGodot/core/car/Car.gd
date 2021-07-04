@@ -104,6 +104,10 @@ func _physics_process(delta):
 		CalcSensorGrid()
 		SenseReponseGrid()
 		ReportStatistics()
+	else:
+		# only update sensor measurement for UI / this is also needed so we can fetch a first measurement/initial state from here and pass to the Environment class in Python
+		CalcSensorGrid()
+		observation_ui_node.SetDistanceGrid(sensor_screenshot) # maybe this could be moved into CalcSensorGrid()
 		self.update()
 
 func WrapAngle(angle):
