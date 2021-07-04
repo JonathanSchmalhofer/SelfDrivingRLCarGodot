@@ -1,5 +1,6 @@
-name: godot-sl-car
+name: godot-sl-car-rainbow-iqn-apex
 channels:
+    - pytorch
     - https://conda.anaconda.org/powerai
     - conda-forge
     - https://conda.anaconda.org/menpo
@@ -7,11 +8,12 @@ dependencies:
     - python==3.7.6
     - pip==20.0.2
     - conda-build
+    - plotly==5.1.0
+    - pytorch==1.9.0
     - pip:
-        - tensorflow==2.2.0
-        - keras==2.3.1
         - matplotlib==3.1.3
         - gym==0.17.2
         - numpy==1.18.1
         - ffmpeg==1.4
-        - neat-python==0.92
+        - opencv-python==4.5.2.54
+        - redlock-py==1.0.8
