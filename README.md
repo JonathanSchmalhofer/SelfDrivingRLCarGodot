@@ -12,6 +12,7 @@ Introduction
 ------------
 
 Trained agent after approx. 30min of training:
+
 ![Trained Agent Driving](doc/img/animation_result.gif)
 
 This project was meant as demo showcase how Godot Engine can be used as simulation environment for reinforcement learning.
@@ -67,6 +68,7 @@ Start Training
 * Watch and Enjoy!
 
 Last seconds of training process before the first agent manages to finish the course:
+
 ![Last Seconds of Training Agent](doc/img/animation_training.gif)
 
 
