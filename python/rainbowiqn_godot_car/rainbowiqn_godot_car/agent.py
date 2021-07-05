@@ -10,13 +10,13 @@ from rainbowiqn_godot_car.model import DQN
 class Agent:
     """This class handle both actor and learner because most of their methods are shared"""
 
-    def __init__(self, args, action_space, redis_servor):
+    def __init__(self, args, action_space, redis_server):
         self.action_space = action_space
 
         self.n = args.multi_step
         self.history = args.history_length
         self.discount = args.discount
-        self.redis_servor = redis_servor
+        self.redis_server = redis_server
         self.device = args.device
 
         self.batch_size = args.batch_size

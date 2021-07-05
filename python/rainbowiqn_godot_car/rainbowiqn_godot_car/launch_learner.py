@@ -78,13 +78,13 @@ def main():
 
     print("os.environ[CUDA_VISIBLE_DEVICES] = ", os.environ["CUDA_VISIBLE_DEVICES"])
 
-    redis_servor = None
+    redis_server = None
     while True:
         try:
-            redis_servor = redis.StrictRedis(host=args.host_redis, port=args.port_redis, db=0)
-            redis_servor.set("foo", "bar")
-            redis_servor.delete("foo")
-            print("Connected to redis servor.")
+            redis_server = redis.StrictRedis(host=args.host_redis, port=args.port_redis, db=0)
+            redis_server.set("foo", "bar")
+            redis_server.delete("foo")
+            print("Connected to redis server.")
             break
 
         except redis.exceptions.ConnectionError as error:
@@ -101,7 +101,7 @@ def main():
     env_tmp.close()
     del env_tmp
 
-    mem_learner = ReplayRedisMemory(args, redis_servor)
+    mem_learner = ReplayRedisMemory(args, redis_server)
     mem_learner.transitions.initialize_redis_database()
     print("Starting training loop")
     # Training loop
@@ -126,7 +126,7 @@ def main():
 
     memory_got_enough_experience = False
 
-    learner = Learner(args, action_space, redis_servor)
+    learner = Learner(args, action_space, redis_server)
     learner.train()
     learner.save_to_redis(T)
 

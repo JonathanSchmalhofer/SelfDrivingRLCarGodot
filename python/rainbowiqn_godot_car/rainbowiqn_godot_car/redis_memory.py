@@ -19,7 +19,7 @@ class RedisSegmentTree:
         self,
         actor_capacity,
         nb_actor,
-        redis_servor,
+        redis_server,
         host_redis,
         port_redis,
         synchronize_actors_with_learner,
@@ -29,7 +29,7 @@ class RedisSegmentTree:
         self.full_capacity = nb_actor * actor_capacity
         self.actor_full = False  # Used to track if actor memory is full, only for each actor...
         self.memory_full = False  # Used to track actual capacity, only for the learner...
-        self.redis_servor = redis_servor
+        self.redis_server = redis_server
         self.synchronise_actors_with_learner = synchronize_actors_with_learner
         if self.synchronise_actors_with_learner:
             redlock_manager = redlock.Redlock([{"host": host_redis, "port": port_redis, "db": 0}])
@@ -67,13 +67,13 @@ class RedisSegmentTree:
         from actors that we can't compute priorities (because we reach end of the buffer
         and we don't get the n-next steps)
         """
-        redis_servor = self.redis_servor
+        redis_server = self.redis_server
         print("we flush the database! This destroy everything in redis-memory")
-        redis_servor.flushdb()
+        redis_server.flushdb()
 
         print("initializing sum_tree with all priorities to 0")
         start_time = time.time()
-        pipe = redis_servor.pipeline()
+        pipe = redis_server.pipeline()
         for index_priorities in range(2 * self.full_capacity - 1):
             pipe.set(cst.PRIORITIES_STR + str(index_priorities), 0)
         print("initializing all actor_index to 0")
@@ -114,7 +114,7 @@ class RedisSegmentTree:
         start_time = time.time()
 
         maximum = 0
-        pipe = self.redis_servor.pipeline()
+        pipe = self.redis_server.pipeline()
         for index_test in range(2 * self.full_capacity - 1):
 
             pipe.get(cst.PRIORITIES_STR + str(index_test))
@@ -155,7 +155,7 @@ class RedisSegmentTree:
     ):
         """
         This function add the actor buffer (consisting of multiple consecutive transitions)
-        at the right location in the redis-servor
+        at the right location in the redis-server
         """
         indexes = (
             np.arange(
@@ -164,7 +164,7 @@ class RedisSegmentTree:
             % self.actor_capacity
         ) + (id_actor * self.actor_capacity)
 
-        pipe = self.redis_servor.pipeline()
+        pipe = self.redis_server.pipeline()
 
         # red_lock, redlock_manager, retry_count = self.acquire_redlock_debug()
 
@@ -203,7 +203,7 @@ class RedisSegmentTree:
 
     # Searches for the location of a value in sum tree
     def _retrieve_multiple_values(self, indexes, values):
-        pipe = self.redis_servor.pipeline()
+        pipe = self.redis_server.pipeline()
         lefts, rights = 2 * indexes + 1, 2 * indexes + 2
         if np.min(lefts) >= 2 * self.full_capacity - 1:
             return indexes
@@ -295,7 +295,7 @@ class RedisSegmentTree:
             np.zeros(len(samples), dtype=int), samples_copy
         )  # Search for index of item from root
 
-        pipe = self.redis_servor.pipeline()
+        pipe = self.redis_server.pipeline()
 
         # We handle index to close from any actor_index by pushing it slightly away from this
         # actor_index (it should be far away by self.history and self.n to get valid transitions)
@@ -331,7 +331,7 @@ class RedisSegmentTree:
         )  # Return value, data index, tree index
 
     def total(self):
-        b_sum_tree_total = self.redis_servor.get(cst.PRIORITIES_STR + str(0))
+        b_sum_tree_total = self.redis_server.get(cst.PRIORITIES_STR + str(0))
         return float(b_sum_tree_total)
 
     def _byte_data_to_transition(self, b_data):
@@ -346,7 +346,7 @@ class RedisSegmentTree:
 
     def get_byte_multiple_transition(self, tab_indeces, history_length, n_step_length):
         length_transitions = history_length + n_step_length  # How much states in each transitions
-        pipe = self.redis_servor.pipeline()
+        pipe = self.redis_server.pipeline()
         for index in tab_indeces:
             id_current_actor = index // self.actor_capacity
             for index_current_transition in range(length_transitions):
@@ -372,7 +372,7 @@ class RedisSegmentTree:
         if self.memory_full:
             # memory is full so we return full capacity without computation
             return self.full_capacity
-        pipe = self.redis_servor.pipeline()
+        pipe = self.redis_server.pipeline()
         is_memory_full = True
         for id_actor in range(self.nb_actor):
             pipe.get(cst.IS_FULL_ACTOR_STR + str(id_actor))
@@ -391,7 +391,7 @@ class RedisSegmentTree:
 
 
 class ReplayRedisMemory:
-    def __init__(self, args, redis_servor):
+    def __init__(self, args, redis_server):
         self.device = args.device
         self.capacity = args.actor_capacity * args.nb_actor
         self.history = args.history_length
@@ -405,7 +405,7 @@ class ReplayRedisMemory:
         self.transitions = RedisSegmentTree(
             args.actor_capacity,
             args.nb_actor,
-            redis_servor,
+            redis_server,
             args.host_redis,
             args.port_redis,
             args.synchronize_actors_with_learner,
@@ -420,7 +420,7 @@ class ReplayRedisMemory:
         assert old_transition.reward == new_transition.reward
         assert old_transition.nonterminal == new_transition.nonterminal
 
-    # Returns a valid sample from all segments in form of byte (to be added to the redis-servor)
+    # Returns a valid sample from all segments in form of byte (to be added to the redis-server)
     def _get_byte_sample_from_all_segment(self, batch_size):
 
         tab_probs, data_indexes, tree_indexes, p_total = self.transitions.find_multiple_values(
@@ -461,7 +461,7 @@ class ReplayRedisMemory:
 
         return tab_probs, data_indexes, tree_indexes, tab_byte_transition, p_total
 
-    # Returns a valid sample from all segments in form of byte (to be added to the redis-servor)
+    # Returns a valid sample from all segments in form of byte (to be added to the redis-server)
     def sample_byte(self, batch_size):
         byte_sample = self._get_byte_sample_from_all_segment(batch_size)
         probs, idxs, tree_idxs, tab_byte_transition, p_total = byte_sample
@@ -474,7 +474,7 @@ class ReplayRedisMemory:
 
         return tree_idxs, tab_byte_transition, weights
 
-    # This retrieve the original tensor that were first added to the redis-servor.
+    # This retrieve the original tensor that were first added to the redis-server.
     # The input is byte and we want to get all tensors of states, actions, rewards etc...
     def get_torch_tensor_from_byte_transition(self, tab_byte_transition, batch_size):
         tab_transitions = []
@@ -540,7 +540,7 @@ class ReplayRedisMemory:
 
         return states, actions, returns, next_states, nonterminals
 
-    # This retrieve the original tensor that were first added to the redis-servor.
+    # This retrieve the original tensor that were first added to the redis-server.
     # The input is byte and we want to get all tensors of states, actions, rewards etc...
     def get_sample_from_mp_queue(self, mp_queue):
         tree_idxs, tab_byte_transition, weights = mp_queue.get()
@@ -559,7 +559,7 @@ class ReplayRedisMemory:
         # priorities.pow_(self.priority_exponent)
         priorities = np.power(priorities, self.priority_exponent)
 
-        pipe = self.transitions.redis_servor.pipeline()
+        pipe = self.transitions.redis_server.pipeline()
 
         # red_lock, redlock_manager, retry_count = self.transitions.acquire_redlock_debug()
 

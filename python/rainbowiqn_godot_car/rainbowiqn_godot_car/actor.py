@@ -35,7 +35,7 @@ class Actor(Agent):
 
     def load_weight_from_redis(self):
         """Load weight from redis database"""
-        load_bytesIO = io.BytesIO(self.redis_servor.get(cst.MODEL_WEIGHT_STR))
+        load_bytesIO = io.BytesIO(self.redis_server.get(cst.MODEL_WEIGHT_STR))
         self.online_net.load_state_dict(torch.load(load_bytesIO, map_location="cpu"))
 
     def compute_priorities(

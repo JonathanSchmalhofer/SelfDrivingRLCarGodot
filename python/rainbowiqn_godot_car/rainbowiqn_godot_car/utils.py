@@ -15,8 +15,8 @@ def log(s):
     print("[" + str(datetime.now().strftime("%Y-%m-%dT%H:%M:%S")) + "] " + s)
 
 
-def dump_in_csv_and_plot_reward(redis_servor, args, T_actor, reward_buffer, actor):
-    pipe = redis_servor.pipeline()
+def dump_in_csv_and_plot_reward(redis_server, args, T_actor, reward_buffer, actor):
+    pipe = redis_server.pipeline()
     pipe.get(cst.STEP_LEARNER_STR)
     for id_actor_loop in range(args.nb_actor):
         pipe.get(cst.STEP_ACTOR_STR + str(id_actor_loop))

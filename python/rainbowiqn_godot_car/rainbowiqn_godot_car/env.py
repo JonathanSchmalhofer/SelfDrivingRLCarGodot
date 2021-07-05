@@ -24,7 +24,10 @@ class GodotCarHelperClient():
         self._debug = False
         self._ip = '127.0.0.1'
         self._port = 42424
-        self._buffer_size = 1024
+        self._window_width = 84
+        self._window_height = 84
+        self._window_depth = 3
+        self._buffer_size = self._window_width * self._window_height * self._window_depth
         self._socket = None
         self._Connect()
         self._Register()
@@ -32,7 +35,7 @@ class GodotCarHelperClient():
         self._step_reward = 0.0
         self._total_reward = 0.0
         self._crash = False
-        self._observation = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self._observation = []
         self._id = ""
 
     def _DebugPrint(self, msg):
@@ -84,7 +87,7 @@ class GodotCarHelperClient():
         self._step_reward = 0.0
         self._total_reward = 0.0
         self._crash = False
-        self._observation = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self._observation = []
 
     def Reset(self):
         self._DebugPrint("Resetting Socket")
@@ -93,6 +96,20 @@ class GodotCarHelperClient():
         command_head = "(HEAD:{length:d})".format(length=len(command_body))
         command = command_head + command_body
         self._socket.send(command.encode('utf-8'))
+        self.SendSense()
+
+    def SendSense(self):
+        command_body = "(SENSE)"
+        command_head = "(HEAD:{length:d})".format(length=len(command_body))
+        command = command_head + command_body
+        self._socket.send(command.encode('utf-8'))
+        data = self._socket.recv(self._buffer_size)
+        data = np.fromstring(data, dtype='uint8')
+        self._observation = cv2.cvtColor(data.reshape((self._window_width, self._window_height, self._window_depth)),
+                                         cv2.COLOR_BGR2GRAY)
+        #cv2.imshow('SERVER', self._observation)
+        #cv2.waitKey(0)
+        #print("SENDSENSE DONE")
 
     def SetControl(self, control):
         command_body = "(CONTROL:{throttle:2.3f};{brake:2.3f};{steer:2.3f})".format(throttle=control[0],
@@ -104,15 +121,7 @@ class GodotCarHelperClient():
         self._step_reward = float(data[0]) - self._total_reward
         self._total_reward += self._step_reward
         self._crash = bool(data[1] == 'True')
-        self._observation[0] = float(data[2])
-        self._observation[1] = float(data[3])
-        self._observation[2] = float(data[4])
-        self._observation[3] = float(data[5])
-        self._observation[4] = float(data[6])
-        self._observation[5] = float(data[7])
-        self._observation[6] = float(data[8])
-        self._observation[7] = float(data[9])
-        self._observation[8] = float(data[10])
+        self._observation = []
 
 
 class Env:
@@ -147,18 +156,10 @@ class Env:
                               self.max_pos_x,
                               self.max_pos_y], dtype=np.float32)
         self.observation_space = spaces.Box(self.low, self.high, dtype=np.float32)
-        self.min_throttle = 0
-        self.max_throttle = +1
-        self.min_brake = 0
-        self.max_brake = +1
-        self.min_steer = -0.8
-        self.max_steer = +0.8
-
-        #self.actions = np.array([0, 1, 2], dtype=np.float32)
-        test = np.array([i for i in range(41)], dtype=np.int32)
-        #self.actions = spaces.Box(np.array([self.min_throttle, self.min_brake, self.min_steer]),
-        #                          np.array([self.max_throttle, self.max_brake, self.max_steer]),
-        #                          dtype=np.float32)  # throttle, brake, steer
+        self.num_bins_steering = 3
+        self.num_bins_throttle = 2
+        self.nums_bins_brake = 2
+        self.actions  = np.array([i for i in range(self.num_bins_steering * self.num_bins_throttle * self.nums_bins_brake)], dtype=np.int32)
 
         self.device = args.device
         self.window = args.history_length  # Number of frames to concatenate
@@ -177,7 +178,7 @@ class Env:
     def _reset_buffer(self):
         self.client.Reset()
         for _ in range(self.window):
-            self.state_buffer.append(self.client.GetObservation())
+            self.state_buffer.append(np.zeros((84, 84)))
 
     def reset(self):
         # Reset internals
@@ -192,6 +193,7 @@ class Env:
         return list(self.state_buffer)
 
     def step(self, action):
+        # todo: change to sending discrete actions
         throttle = float(np.clip(action[0], self.min_throttle, self.max_throttle))
         brake = float(np.clip(action[1], self.min_brake, self.max_brake))
         steer = float(np.clip(action[2], self.min_steer, self.max_steer))

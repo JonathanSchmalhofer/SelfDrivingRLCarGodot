@@ -8,8 +8,8 @@ from rainbowiqn_godot_car.agent import Agent
 class Learner(Agent):
     """This class just handle learner specific methods"""
 
-    def __init__(self, args, action_space, redis_servor):
-        super().__init__(args, action_space, redis_servor)
+    def __init__(self, args, action_space, redis_server):
+        super().__init__(args, action_space, redis_server)
 
     def learn(self, mem_redis, mp_queue):
         # Sample transitions
@@ -26,11 +26,11 @@ class Learner(Agent):
         return idxs, loss
 
     def save_to_redis(self, T_learner):
-        """Store weight into redis servor"""
+        """Store weight into redis server"""
 
         save_bytesIO = io.BytesIO()
         torch.save(self.online_net.state_dict(), save_bytesIO)
-        pipe = self.redis_servor.pipeline()
+        pipe = self.redis_server.pipeline()
         pipe.set(cst.MODEL_WEIGHT_STR, save_bytesIO.getvalue())
         pipe.set(cst.STEP_LEARNER_STR, T_learner)
         pipe.execute()

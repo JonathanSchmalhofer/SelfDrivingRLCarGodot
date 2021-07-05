@@ -16,8 +16,7 @@ from rainbowiqn_godot_car.reward_buffer import RewardBuffer
 
 
 # Create an actor instance
-def launch_actor(id_actor, args, redis_servor):
-
+def launch_actor(id_actor, args, redis_server):
     print("id actor = ", id_actor)
     env_actor = Env(args)
 
@@ -42,9 +41,9 @@ def launch_actor(id_actor, args, redis_servor):
     index_actor_in_memory = 0
     timestep = 0
     actor_buffer = []
-    mem_actor = ReplayRedisMemory(args, redis_servor)
+    mem_actor = ReplayRedisMemory(args, redis_server)
 
-    actor = Actor(args, env_actor.action_space(), redis_servor)
+    actor = Actor(args, env_actor.action_space(), redis_server)
 
     done_actor = True
 
@@ -115,9 +114,9 @@ def launch_actor(id_actor, args, redis_servor):
         # We want to send actor buffer in the redis memory with right initialized priorities
         if len(actor_buffer) >= args.length_actor_buffer:
             if (not mem_actor.transitions.actor_full) and (
-                (index_actor_in_memory + len(actor_buffer)) >= mem_actor.transitions.actor_capacity
+                    (index_actor_in_memory + len(actor_buffer)) >= mem_actor.transitions.actor_capacity
             ):
-                redis_servor.set(cst.IS_FULL_ACTOR_STR + str(id_actor), 1)
+                redis_server.set(cst.IS_FULL_ACTOR_STR + str(id_actor), 1)
                 mem_actor.transitions.actor_full = True
 
             priorities_buffer = actor.compute_priorities(
@@ -127,7 +126,7 @@ def launch_actor(id_actor, args, redis_servor):
             # We dont have the next_states for the last n_step states in the buffer so we just
             # set their priorities to max priorities (should be 3/args.length_buffer_actor
             # experience so a bit negligeable...)
-            max_priority = np.float64(redis_servor.get(cst.MAX_PRIORITY_STR))
+            max_priority = np.float64(redis_server.get(cst.MAX_PRIORITY_STR))
             last_priorities = np.ones(mem_actor.n) * max_priority
 
             all_priorities = np.concatenate((priorities_buffer, last_priorities))
@@ -139,18 +138,18 @@ def launch_actor(id_actor, args, redis_servor):
             p.daemon = True
             p.start()
             index_actor_in_memory = (
-                index_actor_in_memory + len(actor_buffer)
-            ) % args.actor_capacity
+                                            index_actor_in_memory + len(actor_buffer)
+                                    ) % args.actor_capacity
             # Make actors sleep to wait learner if synchronization is on!
             if args.synchronize_actors_with_learner and (T_actor >= step_to_start_sleep):
                 # Actors are always faster than learner
-                T_learner = int(redis_servor.get(cst.STEP_LEARNER_STR))
+                T_learner = int(redis_server.get(cst.STEP_LEARNER_STR))
                 while (
-                    T_learner + 2 * args.weight_synchro_frequency <= T_actor * args.nb_actor
+                        T_learner + 2 * args.weight_synchro_frequency <= T_actor * args.nb_actor
                 ):  # We had a bug at the end because learner don't put in redis memory that
                     # he reached 50 M and actor was sleeping all time...
                     time.sleep(cst.TIME_TO_SLEEP)
-                    T_learner = int(redis_servor.get(cst.STEP_LEARNER_STR))
+                    T_learner = int(redis_server.get(cst.STEP_LEARNER_STR))
             actor_buffer = []
 
             tab_state = []
@@ -165,11 +164,11 @@ def launch_actor(id_actor, args, redis_servor):
         # Plot and dump in csv every evaluation_interval steps (there is in fact not any
         # evaluation done, we just keep track of score while training)
         if (
-            T_actor % (args.evaluation_interval / args.nb_actor) == 0
-            and id_actor == 0
-            and T_actor >= (initial_T_actor + args.evaluation_interval / 2)
+                T_actor % (args.evaluation_interval / args.nb_actor) == 0
+                and id_actor == 0
+                and T_actor >= (initial_T_actor + args.evaluation_interval / 2)
         ):
-            dump_in_csv_and_plot_reward(redis_servor, args, T_actor, reward_buffer, actor)
+            dump_in_csv_and_plot_reward(redis_server, args, T_actor, reward_buffer, actor)
 
         state_buffer_actor = next_state_buffer_actor
         timestep += 1
@@ -179,28 +178,28 @@ def launch_actor(id_actor, args, redis_servor):
 def main():
     args = return_args()
 
-    redis_servor = None
+    redis_server = None
     while True:
         try:
-            redis_servor = redis.StrictRedis(host=args.host_redis, port=args.port_redis, db=0)
-            redis_servor.set("foo", "bar")
-            redis_servor.delete("foo")
-            print("Connected to redis servor.")
+            redis_server = redis.StrictRedis(host=args.host_redis, port=args.port_redis, db=0)
+            redis_server.set("foo", "bar")
+            redis_server.delete("foo")
+            print("Connected to redis server.")
             break
 
         except redis.exceptions.ConnectionError as error:
             logging.error(error)
             time.sleep(1)
 
-    # Check if learner finished to initialize the redis-servor
-    model_weight_from_learner = redis_servor.get(cst.MODEL_WEIGHT_STR)
+    # Check if learner finished to initialize the redis-server
+    model_weight_from_learner = redis_server.get(cst.MODEL_WEIGHT_STR)
     while model_weight_from_learner is None:
         print(
-            "redis servor not initialized, probably because learner is still working on it"
+            "redis server not initialized, probably because learner is still working on it"
         )  # This should not take more than 30 seconds!
         time.sleep(10)
-        model_weight_from_learner = redis_servor.get(cst.MODEL_WEIGHT_STR)
-    launch_actor(args.id_actor, args, redis_servor)
+        model_weight_from_learner = redis_server.get(cst.MODEL_WEIGHT_STR)
+    launch_actor(args.id_actor, args, redis_server)
 
 
 if __name__ == "__main__":
