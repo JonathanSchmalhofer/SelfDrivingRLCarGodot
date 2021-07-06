@@ -125,8 +125,27 @@ func CloseCommand(key):
 	CloseConnection(key)
 
 func HandleCommandWithArguments(key, command):
-	if HandleControlCommand(key, command):
+	if HandleDiscreteControlCommand(key, command):
 		return
+	elif HandleControlCommand(key, command):
+		return
+	else:
+		print("Unknown Command received")
+		return
+
+func HandleDiscreteControlCommand(key, command):
+	var regex = RegEx.new()
+	regex.compile("(?:\\(ACTION:)(?<action>[+-]?\\d*)")
+	var result = regex.search(command)
+	if result:
+		if not result.get_string("action").empty():
+			var action : int = int(result.get_string("action"))
+			if game_logic_node:
+				game_logic_node.DiscreteControl(key, action)
+				game_logic_node.Step(key)
+				pass
+			return true
+	return false
 
 func HandleControlCommand(key, command):
 	var regex = RegEx.new()

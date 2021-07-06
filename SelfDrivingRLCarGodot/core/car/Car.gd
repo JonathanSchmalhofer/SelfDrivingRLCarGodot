@@ -98,7 +98,7 @@ func _physics_process(delta):
 			CalcKinematicModel()
 			UpdateNodes()
 			CalcStatistics()
-		#todo: decide which method to clal depending on Server.gd setting
+		#todo: decide which method to call depending on Server.gd setting
 		#CalcSensors()
 		#SenseReponse()
 		CalcSensorGrid()
@@ -261,6 +261,61 @@ func Control(_throttle, _brake, _steering):
 	throttle_external = _throttle
 	brake_external = _brake
 	steering_external = _steering
+
+func DiscreteControl(_action):
+	# "reset" first in case an unknown action is sent
+	throttle_external = 0
+	brake_external = 0
+	steering_external = 0
+	match _action:
+		0:
+			throttle_external = 0
+			brake_external = 0
+			steering_external = 0
+		1:
+			throttle_external = 0
+			brake_external = 0
+			steering_external = -max_steering
+		2:
+			throttle_external = 0
+			brake_external = 0
+			steering_external = +max_steering
+		3:
+			throttle_external = 1
+			brake_external = 0
+			steering_external = 0
+		4:
+			throttle_external = 1
+			brake_external = 0
+			steering_external = -max_steering
+		5:
+			throttle_external = 1
+			brake_external = 0
+			steering_external = +max_steering
+		6:
+			throttle_external = 0
+			brake_external = 1
+			steering_external = 0
+		7:
+			throttle_external = 0
+			brake_external = 1
+			steering_external = -max_steering
+		8:
+			throttle_external = 0
+			brake_external = 1
+			steering_external = +max_steering
+		9:
+			throttle_external = 1
+			brake_external = 1
+			steering_external = 0
+		10:
+			throttle_external = 1
+			brake_external = 1
+			steering_external = -max_steering
+		11:
+			throttle_external = 1
+			brake_external = 1
+			steering_external = +max_steering
 
 func Sense():
 	SenseReponse()

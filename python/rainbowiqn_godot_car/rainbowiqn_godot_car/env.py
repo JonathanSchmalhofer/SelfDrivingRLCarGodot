@@ -98,18 +98,22 @@ class GodotCarHelperClient():
         self._socket.send(command.encode('utf-8'))
         self.SendSense()
 
+    def _SetObservationFromData(self, data):
+        data = np.fromstring(data, dtype='uint8')
+        self._observation = cv2.cvtColor(data.reshape((self._window_width, self._window_height, self._window_depth)),
+                                         cv2.COLOR_BGR2GRAY)
+        # cv2.imshow('SERVER', self._observation)
+        # cv2.waitKey(0)
+        # print("SENDSENSE DONE")
+
     def SendSense(self):
         command_body = "(SENSE)"
         command_head = "(HEAD:{length:d})".format(length=len(command_body))
         command = command_head + command_body
         self._socket.send(command.encode('utf-8'))
         data = self._socket.recv(self._buffer_size)
-        data = np.fromstring(data, dtype='uint8')
-        self._observation = cv2.cvtColor(data.reshape((self._window_width, self._window_height, self._window_depth)),
-                                         cv2.COLOR_BGR2GRAY)
-        #cv2.imshow('SERVER', self._observation)
-        #cv2.waitKey(0)
-        #print("SENDSENSE DONE")
+        self._SetObservationFromData(data)
+
 
     def SetControl(self, control):
         command_body = "(CONTROL:{throttle:2.3f};{brake:2.3f};{steer:2.3f})".format(throttle=control[0],
@@ -117,11 +121,26 @@ class GodotCarHelperClient():
         command_head = "(HEAD:{length:d})".format(length=len(command_body))
         command = command_head + command_body
         self._socket.send(command.encode('utf-8'))
-        data = self._socket.recv(self._buffer_size).decode('utf-8').split(';')
-        self._step_reward = float(data[0]) - self._total_reward
-        self._total_reward += self._step_reward
-        self._crash = bool(data[1] == 'True')
-        self._observation = []
+        data = self._socket.recv(self._buffer_size)
+        self._SetObservationFromData(data)
+        # todo: check how to send these additional information
+        #self._step_reward = float(data[0]) - self._total_reward
+        #self._total_reward += self._step_reward
+        #self._crash = bool(data[1] == 'True')
+        #self._observation = []
+
+    def SetAction(self, action):
+        command_body = "(ACTION:{:d})".format(action)
+        command_head = "(HEAD:{length:d})".format(length=len(command_body))
+        command = command_head + command_body
+        self._socket.send(command.encode('utf-8'))
+        data = self._socket.recv(self._buffer_size)
+        self._SetObservationFromData(data)
+        # todo: check how to send these additional information
+        # self._step_reward = float(data[0]) - self._total_reward
+        # self._total_reward += self._step_reward
+        # self._crash = bool(data[1] == 'True')
+        # self._observation = []
 
 
 class Env:
@@ -193,12 +212,7 @@ class Env:
         return list(self.state_buffer)
 
     def step(self, action):
-        # todo: change to sending discrete actions
-        throttle = float(np.clip(action[0], self.min_throttle, self.max_throttle))
-        brake = float(np.clip(action[1], self.min_brake, self.max_brake))
-        steer = float(np.clip(action[2], self.min_steer, self.max_steer))
-        control = np.array([throttle, brake, steer])
-        self.client.SetControl(control)
+        self.client.SetAction(action)
         status = self.client.GetStatus()
         reward = self.client.GetReward()
         observation = self.client.GetObservation()

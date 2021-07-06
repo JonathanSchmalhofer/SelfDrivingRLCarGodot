@@ -131,6 +131,12 @@ func Control(uuid, throttle, brake, steering):
 			if child.GetId() == uuid:
 				child.Control(throttle, brake, steering)
 
+func DiscreteControl(uuid, action):
+	if (car_node):
+		for child in car_node.get_children():
+			if child.GetId() == uuid:
+				child.DiscreteControl(action)
+
 func SenseResponse(uuid, crash, sensor_0, sensor_1, sensor_2, sensor_3, sensor_4, velocity, yaw, pos_x, pos_y):
 	if server_node:
 		var send_score : float
