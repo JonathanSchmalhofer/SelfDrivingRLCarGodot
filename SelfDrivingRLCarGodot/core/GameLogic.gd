@@ -99,6 +99,7 @@ func Reset(uuid):
 				child.transform = Transform2D(rot_init, pos_init)				
 				child.scale = Vector2(scale, scale)
 				child.Reset()
+				ResetStatistics()
 
 func StepAll():
 	if (car_node):

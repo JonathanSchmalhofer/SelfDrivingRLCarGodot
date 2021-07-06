@@ -174,16 +174,15 @@ func SenseResponse(uuid, max_score, crash, sensor_0, sensor_1, sensor_2, sensor_
 func SenseResponseGrid(uuid, max_score, crash, sensor_screenshot : Image, velocity, yaw, pos_x, pos_y):
 	if tcp_stream_dict[uuid]:
 		if tcp_stream_dict[uuid].is_connected_to_host():
-			#var response : String 
-			#response += String("{0}".format({0: "%010.5f" % max_score})) + ";"
-			#response += String(crash) + ";"
+			var response : String 
+			response += String("{0}".format({0: "%010.5f" % max_score})) + ";"
+			response += String(int(crash)) + ";"
 			#response += String("{0}".format({0: "%010.5f" % velocity})) + ";"
 			#response += String("{0}".format({0: "%010.5f" % yaw})) + ";"
 			#response += String("{0}".format({0: "%010.5f" % pos_x})) + ";"
 			#response += String("{0}".format({0: "%010.5f" % pos_y})) + ";"
 			sensor_screenshot.convert(Image.FORMAT_RGB8)
-			#tcp_stream_dict[uuid].put_data(response.to_ascii() + sensor_screenshot.get_data()) # in case we want to send more than just an image
-			tcp_stream_dict[uuid].put_data(sensor_screenshot.get_data())
+			tcp_stream_dict[uuid].put_data(response.to_ascii() + sensor_screenshot.get_data())
 
 func RegisterResponse(uuid):
 	if tcp_stream_dict[uuid]:

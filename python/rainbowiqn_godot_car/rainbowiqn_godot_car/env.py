@@ -28,6 +28,7 @@ class GodotCarHelperClient():
         self._window_height = 84
         self._window_depth = 3
         self._buffer_size = self._window_width * self._window_height * self._window_depth
+        self._meta_data_size = 13 # needs to be taken from Godot
         self._socket = None
         self._Connect()
         self._Register()
@@ -69,7 +70,7 @@ class GodotCarHelperClient():
     def GetEpisodeStatus(self):
         # if self._crash:
         #  print("C R A S H")
-        if self._total_reward < -25 or self._total_reward > 14000 or self._crash:
+        if self._total_reward < -100 or self._total_reward > 14000 or self._crash:
             return True
         return False
 
@@ -99,20 +100,32 @@ class GodotCarHelperClient():
         self.SendSense()
 
     def _SetObservationFromData(self, data):
-        data = np.fromstring(data, dtype='uint8')
-        self._observation = cv2.cvtColor(data.reshape((self._window_width, self._window_height, self._window_depth)),
-                                         cv2.COLOR_BGR2GRAY)
+        data_img = np.fromstring(data, dtype='uint8')
+        if data_img.size == self._window_width * self._window_height * self._window_depth:
+            self._observation = cv2.cvtColor(data_img.reshape((self._window_width, self._window_height, self._window_depth)),
+                                             cv2.COLOR_BGR2GRAY)
+        else:
+            print("Data size not matching")
         # cv2.imshow('SERVER', self._observation)
         # cv2.waitKey(0)
         # print("SENDSENSE DONE")
+
+    def _SetMetaDataFromData(self, data_meta):
+        data_meta = data_meta.decode('utf-8').split(';')
+        self._step_reward = float(data_meta[0]) - self._total_reward
+        self._total_reward += self._step_reward
+        self._crash = bool(data_meta[1] == '1')
+        if self._crash:
+            print("CRASH")
 
     def SendSense(self):
         command_body = "(SENSE)"
         command_head = "(HEAD:{length:d})".format(length=len(command_body))
         command = command_head + command_body
         self._socket.send(command.encode('utf-8'))
-        data = self._socket.recv(self._buffer_size)
-        self._SetObservationFromData(data)
+        data = self._socket.recv(self._meta_data_size + self._buffer_size)
+        self._SetMetaDataFromData(data[0:13])
+        self._SetObservationFromData(data[13:])
 
 
     def SetControl(self, control):
@@ -121,21 +134,18 @@ class GodotCarHelperClient():
         command_head = "(HEAD:{length:d})".format(length=len(command_body))
         command = command_head + command_body
         self._socket.send(command.encode('utf-8'))
-        data = self._socket.recv(self._buffer_size)
-        self._SetObservationFromData(data)
-        # todo: check how to send these additional information
-        #self._step_reward = float(data[0]) - self._total_reward
-        #self._total_reward += self._step_reward
-        #self._crash = bool(data[1] == 'True')
-        #self._observation = []
+        data = self._socket.recv(self._meta_data_size + self._buffer_size)
+        self._SetMetaDataFromData(data[0:13])
+        self._SetObservationFromData(data[13:])
 
     def SetAction(self, action):
         command_body = "(ACTION:{:d})".format(action)
         command_head = "(HEAD:{length:d})".format(length=len(command_body))
         command = command_head + command_body
         self._socket.send(command.encode('utf-8'))
-        data = self._socket.recv(self._buffer_size)
-        self._SetObservationFromData(data)
+        data = self._socket.recv(self._meta_data_size + self._buffer_size)
+        self._SetMetaDataFromData(data[0:13])
+        self._SetObservationFromData(data[13:])
         # todo: check how to send these additional information
         # self._step_reward = float(data[0]) - self._total_reward
         # self._total_reward += self._step_reward
