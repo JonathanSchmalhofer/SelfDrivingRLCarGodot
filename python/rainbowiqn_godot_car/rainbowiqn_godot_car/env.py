@@ -115,8 +115,6 @@ class GodotCarHelperClient():
         self._step_reward = float(data_meta[0]) - self._total_reward
         self._total_reward += self._step_reward
         self._crash = bool(data_meta[1] == '1')
-        if self._crash:
-            print("CRASH")
 
     def SendSense(self):
         command_body = "(SENSE)"
